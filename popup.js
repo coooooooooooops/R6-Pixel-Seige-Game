@@ -1,0 +1,1 @@
+addEventListener('message',e=>{const f=document.getElementById('g');if(e.source!==f.contentWindow||!e.data||e.data.r6!=='fullscreen')return;chrome.tabs.create({url:chrome.runtime.getURL('game.html')+'?fs=1'},()=>window.close())});

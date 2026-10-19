@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "rev": "2026-10-24.1",
+  "announce": "Halloween bonus drop is live",
+  "app": {
+    "version": "0.16.0"
+  },
+  "items": [
+    {
+      "n": "Candy Corn Camo",
+      "t": "wp",
+      "r": "e",
+      "s": "camo",
+      "p": [
+        "#ffb62e",
+        "#ffffff",
+        "#ff7a1a"
+      ],
+      "se": "m10",
+      "tier": 4
+    },
+    {
+      "n": "Spiderweb Drone",
+      "t": "dr",
+      "r": "e",
+      "p": [
+        "#2a2a34",
+        "#0a0a10",
+        "#e8ecf2"
+      ],
+      "se": "m10",
+      "tier": 21
+    },
+    {
+      "n": "Boo Trail",
+      "t": "tr",
+      "r": "r",
+      "s": "fade",
+      "p": [
+        "#e8f4ff"
+      ],
+      "se": "m10",
+      "tier": 27
+    },
+    {
+      "n": "Midnight Mask",
+      "t": "hd",
+      "r": "r",
+      "s": "ghost",
+      "p": [
+        "#14141a",
+        "#7aff2a"
+      ],
+      "from": "2026-10-25"
+    }
+  ],
+  "seasons": []
+}

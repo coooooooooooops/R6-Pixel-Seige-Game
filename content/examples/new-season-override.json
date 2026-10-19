@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "rev": "2027-12-01.1",
+  "items": [
+    { "n": "Snow Globe Skin", "t": "sk", "r": "l", "p": ["#7ad8ff", "#0a1830", "#ffffff"], "se": "xmas27" },
+    { "n": "Candy Cane Drone", "t": "dr", "r": "r", "p": ["#e8ecf2", "#a0202a", "#ff4a4a"], "se": "xmas27" },
+    { "n": "Jingle Flash",     "t": "mf", "r": "r", "p": ["#ffffff", "#4aff7a"], "se": "xmas27" },
+    { "n": "Santa Sleigh Mythic", "t": "sk", "r": "m", "p": ["#d02a2a", "#ffffff", "#ffd24a"], "se": "xmas27" }
+  ],
+  "seasons": [
+    { "ym": "2027-12", "name": "Festive Fire", "tag": "Special edition", "col": ["#ff4a4a", "#0a1830", "#ffffff"], "grp": "xmas27" }
+  ]
+}

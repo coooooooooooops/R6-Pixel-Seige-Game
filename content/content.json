@@ -1,0 +1,9 @@
+{
+  "_readme": "Live content pack. The game downloads this file from the main branch on start and every 20 minutes. See README.md for the format. Unknown keys such as this one are ignored.",
+  "schema": 1,
+  "rev": "2026-10-19.1",
+  "announce": "",
+  "app": { "version": "0.16.0", "url": "https://github.com/coooooooooooops/R6-Pixel-Seige-Game/releases/latest", "notes": "" },
+  "items": [],
+  "seasons": []
+}
