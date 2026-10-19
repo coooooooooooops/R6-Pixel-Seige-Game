@@ -18,7 +18,8 @@ function give(r){if(r.k==='cr'){ECO.add(r.n);return{r,text:'+'+r.n+' CREDITS'}}
  const g=ECO.grant(r.id);return{r,item:g.item,dup:!!g.dup,text:g.item?g.item.n.toUpperCase()+(g.dup?' (DUPLICATE +'+g.refund+' CR)':''):'?'}}
 function grantReached(){roll();const out=[],t=tierOf(P.xp);for(let i=1;i<=t;i++)if(!P.got[i]){P.got[i]=1;const r=SE.tiers[i-1];if(r)out.push(Object.assign({tier:i},give(r)))}if(out.length)emit();return out}
 function addXP(n){roll();const before=tierOf(P.xp);P.xp=Math.max(0,Math.min(TIERS*XPT,P.xp+Math.round(n)));const rewards=grantReached();emit();return{xp:Math.round(n),from:before,to:tierOf(P.xp),rewards}}
-const PASS={get state(){roll();return P},get season(){return SE},tierOf,addXP,sync:grantReached,bus};
+const PASS={get state(){roll();return P},get season(){return SE},tierOf,addXP,sync:grantReached,bus,
+ _replace(o){if(!o||typeof o!=='object')return;for(const k in P)delete P[k];Object.assign(P,o);P.got=P.got||{};P.hist=P.hist||{};P.xp|=0;P.key=P.key||'';roll();emit()}};
 window.R6PASS=PASS;
 /* ---------- XP from matches ---------- */
 if(typeof ECO.matchEnd==='function'){const orig=ECO.matchEnd;

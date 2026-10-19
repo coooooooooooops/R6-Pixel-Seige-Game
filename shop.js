@@ -37,7 +37,8 @@ const ECO={CAT,BYID,RAR,TYPES,dayKey,nextReset,dayStart,todaysShop,shopFor,bus,
  equip(id){const c=BYID[id];if(!c)return{ok:0,why:'UNKNOWN ITEM'};if(!W.inv[id])return{ok:0,why:'NOT OWNED'};W.eq[c.t]=id;emit();return{ok:1}},
  unequip(t){delete W.eq[t];emit()},
  isEq:id=>{const c=BYID[id];return !!c&&W.eq[c.t]===id},
- save,_state:()=>W};
+ save,_state:()=>W,
+ _replace(o){if(!o||typeof o!=='object')return;const kp=W.packs,ks=W.stats;for(const k in W)delete W[k];Object.assign(W,o);for(const [t,n] of [['packs',kp],['stats',ks]]){const nv=(W[t]&&typeof W[t]==='object')?W[t]:{};for(const k in n)delete n[k];Object.assign(n,nv);W[t]=n}W.cr=Math.max(0,Math.round(+W.cr||0));W.inv=W.inv||{};W.eq=W.eq||{};W.stats=W.stats||{buys:0};if(!W.packs||typeof W.packs!=='object')W.packs={supply:0,elite:0};W.packs.supply|=0;W.packs.elite|=0;W.stats.pity|=0;W.stats.pityM|=0;emit()}};
 window.ECO=ECO;
 /* ---------- mystery packs ---------- */
 const ORD=['c','r','e','l','m'],PITY=14,MPITY=25;

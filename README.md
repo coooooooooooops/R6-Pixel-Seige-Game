@@ -80,3 +80,10 @@ Nothing from the network is executed. Every pack entry is validated (types, styl
 ## Dev
 - Tests (Playwright + Chromium, in `build/`): `test_seasons.py` (calendar edges, pass, packs, updater, drone skins), `audit.py` / `audit_season.py` (UI fit at 5 sizes), `shoptest.py`, `hudtest.py`, `test_runs.py`.
 - Time travel for testing in the console: `R6S.setNow(Date.parse('2026-10-31T12:59:59Z'))`, then `R6S.setNow(null)`.
+
+## Accounts (Supabase)
+Optional sign-in saves settings, key bindings, loadouts + favourite operators and stats (K/D, wins, rounds, damage) to the cloud.
+1. Run `supabase_setup.sql` once in Supabase > SQL Editor.
+2. Put your Project URL in `account-config.js` (the publishable key is already there; never use a secret/service_role key).
+3. Reload the extension. SIGN IN (top right) opens the prompt; once signed in, the same button opens the ACCOUNT tab.
+Stats can only be increased through the `add_stats()` database function (capped per call); the game cannot write them directly.
