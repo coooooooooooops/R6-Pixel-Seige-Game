@@ -82,8 +82,17 @@ Nothing from the network is executed. Every pack entry is validated (types, styl
 - Time travel for testing in the console: `R6S.setNow(Date.parse('2026-10-31T12:59:59Z'))`, then `R6S.setNow(null)`.
 
 ## Accounts (Supabase)
-Optional sign-in saves settings, key bindings, loadouts + favourite operators and stats (K/D, wins, rounds, damage) to the cloud.
-1. Run `supabase_setup.sql` once in Supabase > SQL Editor.
-2. Put your Project URL in `account-config.js` (the publishable key is already there; never use a secret/service_role key).
-3. Reload the extension. SIGN IN (top right) opens the prompt; once signed in, the same button opens the ACCOUNT tab.
-Stats can only be increased through the `add_stats()` database function (capped per call); the game cannot write them directly.
+Optional sign-in saves settings, key bindings, loadouts + favourite operators, credits / owned items / equipped cosmetics / packs, the season pass, and stats (K/D, wins, rounds, damage) to the cloud.
+1. Run `supabase_setup.sql` in Supabase > SQL Editor (safe to re-run; v2 fixes the v1 save failure `42501 permission denied`).
+2. `account-config.js` holds the Project URL + publishable key (never use a secret/service_role key).
+3. Reload the extension. SIGN IN (top right) opens the prompt; once signed in, the same button opens the ACCOUNT tab (stats, SET USERNAME, CHANGE PASSWORD, SYNC NOW, SIGN OUT).
+
+How it is locked down: the table is read-only for the game. Writes go through `save_player_data()` (validated, size-capped, version-checked so a second device can never silently overwrite) and `add_stats()` (stats only go up, capped per call).
+Sync rules: first time a device meets an account the two are merged (nothing owned is lost; a never-used wallet just takes the cloud copy). Two devices editing at once are 3-way merged. A different account signing in on the same device never inherits the previous account's wallet.
+
+**Dashboard settings that decide whether e-mail verification works for other players** (Supabase > Authentication):
+- *Sign In / Providers > Email > Confirm email*: ON means players must click a link before signing in. The built-in Supabase mailer only delivers to your own team and is heavily rate-limited, so for real players either set up custom SMTP (Authentication > SMTP Settings) or turn Confirm email OFF.
+- *URL Configuration*: set Site URL to where the game lives and add it (plus `/**`) to Redirect URLs. Confirmation / reset links land there and the game signs the player in from the link. Left at the default, the link opens `localhost:3000`.
+- Optional: Authentication > Passwords > leaked password protection.
+
+Test: `python3 build/test_account.py` (70 checks, fake Supabase that mirrors the verified database rules).
