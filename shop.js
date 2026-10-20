@@ -88,7 +88,7 @@ const css=document.createElement('style');css.textContent=`
 #shGrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
 .shc{position:relative;display:flex;flex-direction:column;gap:6px;padding:8px;background:rgba(8,8,10,.8);border:1px solid #2d2d33;border-top:3px solid var(--rc);min-width:0}
 .shc.feat{box-shadow:0 0 0 1px var(--rc),0 0 18px -4px var(--rc)}
-.shc canvas{width:auto;height:clamp(60px,15vh,150px);aspect-ratio:1;align-self:center;max-width:100%;image-rendering:pixelated;background:radial-gradient(circle at 50% 60%,rgba(255,255,255,.08),rgba(0,0,0,.4));border:1px solid #1d1d22;display:block}
+.shc canvas{width:auto;height:clamp(60px,calc(var(--vh)*15),150px);aspect-ratio:1;align-self:center;max-width:100%;image-rendering:pixelated;background:radial-gradient(circle at 50% 60%,rgba(255,255,255,.08),rgba(0,0,0,.4));border:1px solid #1d1d22;display:block}
 .shc .rn{font:600 11px Rajdhani,sans-serif;letter-spacing:3px;color:var(--rc)}
 .shc h4{margin:0;font:700 15px Rajdhani,sans-serif;letter-spacing:2px;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .shc .ty{font:500 11px Rajdhani,sans-serif;letter-spacing:2px;color:#8fa3bf}
@@ -98,7 +98,7 @@ const css=document.createElement('style');css.textContent=`
 .shc.own button{background:#14301c;border-bottom-color:#0a1c10;color:#6aff9a}
 #shMsg{min-height:16px;font:600 13px Rajdhani,sans-serif;letter-spacing:3px;color:#ffd24a;text-align:center}
 @media(max-width:900px){#shGrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.shc h4{font-size:12px;letter-spacing:1px}}
-@media(max-height:680px){.shc canvas{height:max(44px,10vh)}.shc .ty{display:none}#tp-shop .shh h2{font-size:18px}}
+@media(max-height:680px){.shc canvas{height:max(44px,calc(var(--vh)*10))}.shc .ty{display:none}#tp-shop .shh h2{font-size:18px}}
 @media(max-height:760px){#shGrid{gap:6px}.shc{padding:6px;gap:3px}#tp-shop .shw{gap:8px}}
 
 [hidden]{display:none!important}
@@ -108,7 +108,7 @@ const css=document.createElement('style');css.textContent=`
 #tp-shop .shtabs i{font-style:normal;margin-left:8px;color:#ffd24a}
 #shPacks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .pkc{display:flex;flex-direction:column;gap:7px;padding:10px;background:rgba(8,8,10,.8);border:1px solid #2d2d33;border-top:3px solid var(--rc);min-width:0}
-.pkc canvas{height:clamp(70px,17vh,160px);width:auto;aspect-ratio:1;align-self:center;image-rendering:pixelated;background:radial-gradient(circle at 50% 60%,rgba(255,255,255,.08),rgba(0,0,0,.4));border:1px solid #1d1d22}
+.pkc canvas{height:clamp(70px,calc(var(--vh)*17),160px);width:auto;aspect-ratio:1;align-self:center;image-rendering:pixelated;background:radial-gradient(circle at 50% 60%,rgba(255,255,255,.08),rgba(0,0,0,.4));border:1px solid #1d1d22}
 .pkc h4{margin:0;font:700 18px Rajdhani,sans-serif;letter-spacing:3px;color:var(--rc)}
 .pkc .nt{font:500 12px Rajdhani,sans-serif;letter-spacing:2px;color:#8fa3bf}
 .pkc .rt{display:grid;grid-template-columns:1fr auto;gap:0 10px;font:600 11px Rajdhani,sans-serif;letter-spacing:2px;line-height:1.25}
@@ -121,22 +121,22 @@ const css=document.createElement('style');css.textContent=`
 .pkc.inf b{color:#ffd24a;font-weight:700}
 .pkc .bar{height:8px;background:#1d1d22;border:1px solid #2d2d33}.pkc .bar i{display:block;height:100%;background:#ffb62e}
 #pkM{position:fixed;inset:0;z-index:99999;background:rgba(2,3,6,.94);display:flex;align-items:center;justify-content:center}
-#pkM .pkbox{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,2vh,18px);width:min(900px,calc(100% - 24px));max-height:calc(100% - 16px);box-sizing:border-box;padding:12px}
-#pkM .pkt{font:400 clamp(16px,3.4vh,26px) Silkscreen,monospace;letter-spacing:4px;color:var(--pc,#fff);text-align:center}
-#pkM .pkst{display:flex;gap:clamp(8px,1.6vw,18px);align-items:center;justify-content:center;min-height:0;width:100%}
+#pkM .pkbox{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,calc(var(--vh)*2),18px);width:min(900px,calc(100% - 24px));max-height:calc(100% - 16px);box-sizing:border-box;padding:12px}
+#pkM .pkt{font:400 clamp(16px,calc(var(--vh)*3.4),26px) Silkscreen,monospace;letter-spacing:4px;color:var(--pc,#fff);text-align:center}
+#pkM .pkst{display:flex;gap:clamp(8px,calc(var(--vw)*1.6),18px);align-items:center;justify-content:center;min-height:0;width:100%}
 #pkM .pkh{font:700 14px Rajdhani,sans-serif;letter-spacing:4px;color:#ffd24a;animation:pkb 1s infinite alternate}
 @keyframes pkb{to{opacity:.35}}
 #pkM .pkbig{background:none!important;border:0!important;display:flex;flex-direction:column;align-items:center;gap:12px;cursor:pointer;background:none;border:0;padding:0}
-#pkM .pkbig canvas{height:clamp(110px,38vh,330px);width:auto;aspect-ratio:1;image-rendering:pixelated;animation:pks .5s infinite alternate;filter:drop-shadow(0 0 22px var(--pc))}
+#pkM .pkbig canvas{height:clamp(110px,calc(var(--vh)*38),330px);width:auto;aspect-ratio:1;image-rendering:pixelated;animation:pks .5s infinite alternate;filter:drop-shadow(0 0 22px var(--pc))}
 @keyframes pks{from{transform:rotate(-3deg) scale(1)}to{transform:rotate(3deg) scale(1.04)}}
-#pkM .pkcd{width:clamp(110px,24vh,230px);flex:none;aspect-ratio:3/4.1;position:relative;perspective:900px}
+#pkM .pkcd{width:clamp(110px,calc(var(--vh)*24),230px);flex:none;aspect-ratio:3/4.1;position:relative;perspective:900px}
 #pkM .pkin{position:absolute;inset:0;transition:transform .5s;transform-style:preserve-3d}
 #pkM .pkcd.flip .pkin{transform:rotateY(180deg)}
 #pkM .pkf,#pkM .pkb{position:absolute;inset:0;backface-visibility:hidden;box-sizing:border-box;border:2px solid #2d2d33;background:#0b0c10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:6px}
-#pkM .pkb{font:400 clamp(20px,5vh,40px) Silkscreen,monospace;color:#2d2d33}
+#pkM .pkb{font:400 clamp(20px,calc(var(--vh)*5),40px) Silkscreen,monospace;color:#2d2d33}
 #pkM .pkf{transform:rotateY(180deg);border-color:var(--rc);box-shadow:0 0 26px -6px var(--rc),inset 0 0 22px -12px var(--rc)}
 #pkM .pkf canvas{width:80%;height:auto;aspect-ratio:1;image-rendering:pixelated;background:radial-gradient(circle at 50% 60%,rgba(255,255,255,.08),rgba(0,0,0,.4))}
-#pkM .pkf .rn{font:700 11px Rajdhani,sans-serif;letter-spacing:3px;color:var(--rc)}#pkM .pkf h5{margin:0;font:700 clamp(12px,2vh,16px) Rajdhani,sans-serif;letter-spacing:2px;color:#fff;text-align:center}
+#pkM .pkf .rn{font:700 11px Rajdhani,sans-serif;letter-spacing:3px;color:var(--rc)}#pkM .pkf h5{margin:0;font:700 clamp(12px,calc(var(--vh)*2),16px) Rajdhani,sans-serif;letter-spacing:2px;color:#fff;text-align:center}
 #pkM .pkf .ty{font:500 10px Rajdhani,sans-serif;letter-spacing:2px;color:#8fa3bf;text-align:center}#pkM .pkf .tg{font:700 12px Rajdhani,sans-serif;letter-spacing:2px}
 #pkM .pkbtn{display:flex;gap:8px;min-height:36px}
 #pkM.fl{animation:pkf .6s}@keyframes pkf{0%{background:#fff}100%{background:rgba(2,3,6,.94)}}
@@ -149,7 +149,7 @@ const css=document.createElement('style');css.textContent=`
 #ovRw button{cursor:pointer;font:700 13px Rajdhani,sans-serif;letter-spacing:3px;padding:7px 14px;color:#fff;background:#c4262e;border:0;border-bottom:3px solid #7a1218}
 @media(max-width:900px){#shPacks{grid-template-columns:repeat(2,minmax(0,1fr))}#shPacks .inf{grid-column:1/3}}
 @media(max-height:760px){.pkc{padding:7px;gap:4px}.pkc .nt{display:none}#shPacks{gap:6px}}
-@media(max-height:680px){.pkc canvas{height:max(36px,8vh)}.pkc .rt{font-size:9px}.pkc h4{font-size:15px}.pkc.inf ul{font-size:11px;gap:3px}}
+@media(max-height:680px){.pkc canvas{height:max(36px,calc(var(--vh)*8))}.pkc .rt{font-size:9px}.pkc h4{font-size:15px}.pkc.inf ul{font-size:11px;gap:3px}}
 `;document.head.appendChild(css);
 const panel=document.createElement('div');panel.className='tp';panel.id='tp-shop';panel.hidden=true;
 panel.innerHTML=`<div class="shw"><div class="shh"><div><h2 id="shTitle">DAILY SHOP</h2><small id="shSub">12 ITEMS // RESETS 12:00AM SYDNEY TIME</small></div><div class="shtabs"><button data-st="daily" class="on">DAILY</button><button data-st="packs">PACKS<i id="pkN"></i></button></div><div class="cd" id="shCdBox"><small>NEXT ROTATION</small><span id="shCd">--:--:--</span></div></div><div id="shDaily"><div id="shGrid"></div></div><div id="shPacks" hidden></div><div id="shMsg"></div></div>`;

@@ -9,7 +9,7 @@ const css=document.createElement('style');css.textContent=`
 #tp-lock .lkw{display:flex;flex-direction:column;gap:10px;width:min(1040px,100%);margin:0 auto;box-sizing:border-box}
 #tp-lock .lkh{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid #2d2d33;padding-bottom:8px}
 #tp-lock .lkh h2{margin:0;font:400 22px Silkscreen,monospace;letter-spacing:4px;color:#fff}#tp-lock .lkh small{display:block;margin-top:4px;font:500 12px Rajdhani,sans-serif;letter-spacing:3px;color:#8fa3bf}
-#tp-lock .lkb{display:grid;grid-template-columns:minmax(0,370px) minmax(0,1fr);gap:12px;height:calc(100vh - 222px);min-height:300px}
+#tp-lock .lkb{display:grid;grid-template-columns:minmax(0,370px) minmax(0,1fr);gap:12px;height:calc(calc(var(--vh)*100) - 222px);min-height:300px}
 #tp-lock .lkl{display:flex;flex-direction:column;gap:8px;min-height:0}
 #lkCv{width:100%;aspect-ratio:3/2;max-height:46%;image-rendering:pixelated;border:1px solid #2d2d33;background:#0c1016;display:block;flex:none}
 #lkEq{display:flex;flex-direction:column;gap:3px;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#e5303a #14161b}
@@ -30,8 +30,8 @@ const css=document.createElement('style');css.textContent=`
 #lkBar b{color:#fff}#lkBar button{cursor:pointer;font:700 13px Rajdhani,sans-serif;letter-spacing:3px;padding:7px 18px;color:#fff;background:#c4262e;border:0;border-bottom:3px solid #7a1218;white-space:nowrap}
 #lkBar button.g{background:#14301c;border-bottom-color:#0a1c10;color:#6aff9a}#lkBar button:disabled{background:#1d1d22;border-bottom-color:#111;color:#666b75}
 @media(max-width:900px){#tp-lock .lkb{grid-template-columns:minmax(0,260px) minmax(0,1fr)}#lkEq button{grid-template-columns:50px 1fr}#lkEq button u{display:none}}
-@media(min-height:901px){#tp-lock .lkb{height:calc(100vh - 238px)}}
-@media(max-height:760px){#tp-lock .lkb{height:calc(100vh - 216px)}#lkEq button{padding:2px 6px}#tp-lock .lkw{gap:6px}}
+@media(min-height:901px){#tp-lock .lkb{height:calc(calc(var(--vh)*100) - 238px)}}
+@media(max-height:760px){#tp-lock .lkb{height:calc(calc(var(--vh)*100) - 216px)}#lkEq button{padding:2px 6px}#tp-lock .lkw{gap:6px}}
 `;document.head.appendChild(css);
 const panel=document.createElement('div');panel.className='tp';panel.id='tp-lock';panel.hidden=true;
 panel.innerHTML=`<div class="lkw"><div class="lkh"><div><h2>LOCKER</h2><small id="lkSub"></small></div></div><div class="lkb"><div class="lkl"><canvas id="lkCv" width="300" height="200"></canvas><div id="lkEq"></div></div><div class="lkr"><div id="lkCats"></div><div id="lkGrid"></div><div id="lkBar"></div></div></div></div>`;

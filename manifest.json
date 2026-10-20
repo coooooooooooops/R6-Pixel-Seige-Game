@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "R6 Pixel Siege",
-  "version": "0.16.1",
+  "version": "0.16.2",
   "description": "2D pixel-art tactical breach and clear shooter. Play in the popup, or open it fullscreen in a tab.",
   "action": {
     "default_popup": "popup.html",

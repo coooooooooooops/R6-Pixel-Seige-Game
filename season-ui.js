@@ -56,7 +56,7 @@ const css=document.createElement('style');css.textContent=`
 #seGrid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px}
 .stc{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 4px 6px;background:rgba(8,8,10,.8);border:1px solid #2d2d33;border-top:3px solid var(--rc,#2d2d33);min-width:0}
 .stc .no{align-self:flex-start;font:700 11px Rajdhani,sans-serif;letter-spacing:2px;color:#8fa3bf}
-.stc canvas{width:auto;height:clamp(34px,7.5vh,66px);aspect-ratio:1;max-width:100%;image-rendering:pixelated;background:radial-gradient(circle at 50% 60%,rgba(255,255,255,.07),rgba(0,0,0,.4));border:1px solid #1d1d22}
+.stc canvas{width:auto;height:clamp(34px,calc(var(--vh)*7.5),66px);aspect-ratio:1;max-width:100%;image-rendering:pixelated;background:radial-gradient(circle at 50% 60%,rgba(255,255,255,.07),rgba(0,0,0,.4));border:1px solid #1d1d22}
 .stc .nm{width:100%;font:700 11px Rajdhani,sans-serif;letter-spacing:1px;color:#fff;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .stc .st{font:700 10px Rajdhani,sans-serif;letter-spacing:2px;color:#666b75}
 .stc.lk{opacity:.62}.stc.got{border-color:#1f5a33;border-top-color:var(--rc)}.stc.got .st{color:#6aff9a}.stc.nxt{opacity:1;box-shadow:0 0 0 1px var(--se),0 0 14px -4px var(--se)}.stc.nxt .st{color:var(--se)}
@@ -70,7 +70,7 @@ const css=document.createElement('style');css.textContent=`
 @media(max-width:900px){#tabs button{padding:12px 5px;letter-spacing:1px;font-size:11px}#crBadge{margin-left:auto;margin-right:4px;padding:5px 6px;font-size:12px;letter-spacing:1px}#tabs .gear{padding:4px 7px}}
 @media(max-width:900px){#seGrid{grid-template-columns:repeat(6,minmax(0,1fr))}#seCal{grid-template-columns:repeat(6,minmax(0,1fr))}}
 @media(max-height:760px){#tp-season .sew{gap:6px}.stc{padding:3px}.stc .st{display:none}#tp-season .seh h2{font-size:18px}#tp-season .cd{font-size:20px}}
-@media(max-height:640px){.stc canvas{height:max(28px,6vh)}#seCal{display:none}}
+@media(max-height:640px){.stc canvas{height:max(28px,calc(var(--vh)*6))}#seCal{display:none}}
 `;document.head.appendChild(css);
 const panel=document.createElement('div');panel.className='tp';panel.id='tp-season';panel.hidden=true;
 panel.innerHTML='<div class="sew"><div class="seh"><div><h2 id="seT">SEASON</h2><small id="seS"></small></div><div class="cd"><small>SEASON ENDS IN</small><span id="seCd">--</span></div></div><div id="seCal"></div><div id="sePr"><div class="tn" id="seTn"></div><div class="bar"><i id="seBar"></i></div><div class="xp" id="seXp"></div></div><div id="seGrid"></div><div id="seFt"><span id="seNx"></span><span id="seCt"></span></div></div>';
