@@ -63,6 +63,10 @@ Why two paths: Chrome Manifest V3 forbids extensions from downloading and runnin
 ```
 Re-themes/renames that exact month (`ym`). With a new `grp`, the pass is built from items carrying that `se`; without it, the built-in track is kept. The normal calendar resumes the next month automatically.
 
+
+### One-click code updates (v0.16.3+)
+The banner now has an **UPDATE NOW** button. The first time, pick your unpacked extension folder; the game then downloads every changed file from `main`, writes it into that folder, and reloads itself. The banner appears whenever `manifest.json` on `main` has a higher `version` than the installed one (no need to edit `content.json`). In the popup the button opens the game in a tab first, because the folder picker cannot run inside a popup.
+
 ### Announcing a code release
 ```json
 "app": { "version": "0.17.0", "url": "https://github.com/coooooooooooops/R6-Pixel-Seige-Game/releases/latest", "notes": "New operators" }
