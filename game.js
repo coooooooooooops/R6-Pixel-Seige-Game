@@ -692,6 +692,7 @@ function trace(e,a,dmg,rng){let x=EX(e)+Math.cos(a)*8,y=EY(e)+Math.sin(a)*8,lt=-
   const H_=G.hostage;if(!hit&&G.mode==='hostage'&&H_.hp>0&&!H_.carrier&&dst(H_.x,H_.y,x,y)<6){H_.hp-=dmg*.25;H_.by=e.side;hit=true}
   if(!hit&&e.side==='A')for(const c of G.cams)if(c.alive&&dst(c.x,c.y,x,y)<5){c.hp-=dmg;if(c.hp<=0){c.alive=0;boom(c.x,c.y,10,'#8fa3bf');sfx(200,.2,'square',.05)}hit=true;break}
   if(!hit&&e.side==='D'&&G.drones)for(const d of G.drones)if(d.alive&&dst(d.x,d.y,x,y)<6){hurtDrone(d,dmg,e);hit=true;break}
+  if(!hit&&window.R6A&&R6A.bhit(x,y,dmg,e))hit=true;
   if(hit){hitx=x;hity=y;break}hitx=x;hity=y}
  G.tr.push({x1:EX(e)+Math.cos(a)*8,y1:EY(e)+Math.sin(a)*8,x2:hitx,y2:hity,t:3,pl:!e.bot})}
 function rayHit(e,max){let x=e.x,y=e.y;for(let d=0;d<max;d+=2){x+=Math.cos(e.a)*2;y+=Math.sin(e.a)*2;const t=tileAt(x,y);if(solid(t))return{x,y,tx:x/T|0,ty:y/T|0,t}}return{x,y,t:0}}

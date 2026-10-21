@@ -11,7 +11,7 @@ const REPO='coooooooooooops/R6-Pixel-Seige-Game',BRANCH='main';
 const URL='https://raw.githubusercontent.com/'+REPO+'/'+BRANCH+'/content/content.json';
 const REL='https://github.com/'+REPO+'/releases/latest';
 const MAN='https://raw.githubusercontent.com/'+REPO+'/'+BRANCH+'/manifest.json',RAW='https://raw.githubusercontent.com/'+REPO+'/'+BRANCH+'/',TREE='https://api.github.com/repos/'+REPO+'/git/trees/'+BRANCH+'?recursive=1';
-const SKIP=/^(\.git|\.github|tools|build|content)\/|^(README\.md|HANDOFF\.md|\.gitignore)$|\.zip$/,RV='r6s_remote_ver',FORCE=/[?&]update=1/.test(location.search);
+const SKIP=/^(\.git|\.github|tools|build|content|site|dist)\/|^(README\.md|HANDOFF\.md|\.gitignore)$|\.zip$/,RV='r6s_remote_ver',FORCE=/[?&]update=1/.test(location.search);
 const EVERY=20*60*1000,MAXB=1500000,SEENREV='r6s_seen_rev',SEENUP='r6s_seen_up';
 let st={at:0,ok:null,msg:'CHECKING FOR CONTENT UPDATES...',last:null,ver:'0.0.0'};
 const vnum=v=>String(v).split('.').map(n=>+n||0),newer=(a,b)=>{const A=vnum(a),B=vnum(b);for(let i=0;i<3;i++){if((A[i]||0)>(B[i]||0))return true;if((A[i]||0)<(B[i]||0))return false}return false};
@@ -58,7 +58,7 @@ async function updateNow(log){
  if(!dir){log('PICK THE R6 PIXEL SIEGE EXTENSION FOLDER');dir=await window.showDirectoryPicker({mode:'readwrite',id:'r6s'});await setH(dir)}
  await pull(dir,log);
 }
-function banner(a){let b=document.getElementById('upBar');if(b)b.remove();if(!a||st.ver==='0.0.0'||!newer(a.version,st.ver))return;
+function banner(a){if(window.R6_WEB)return;let b=document.getElementById('upBar');if(b)b.remove();if(!a||st.ver==='0.0.0'||!newer(a.version,st.ver))return;
  if(!FORCE)try{if(localStorage.getItem(SEENUP)===a.version+'x')return}catch(e){}
  b=document.createElement('div');b.id='upBar';
  const s=document.createElement('style');if(!document.getElementById('upCss')){s.id='upCss';s.textContent='#upBar{position:fixed;left:60px;bottom:72px;z-index:99990;display:flex;align-items:center;gap:12px;max-width:min(560px,calc(100% - 24px));box-sizing:border-box;padding:8px 12px;background:rgba(8,8,10,.96);border:1px solid #ffd24a;border-left:4px solid #ffd24a;font:700 13px Rajdhani,sans-serif;letter-spacing:2px;color:#fff}#upBar a{color:#ffd24a;text-decoration:underline;white-space:nowrap}#upBar small{display:block;font:500 11px Rajdhani,sans-serif;color:#8fa3bf;letter-spacing:1px;margin-top:2px}#upBar button{cursor:pointer;background:none;border:0;color:#8fa3bf;font:700 16px Rajdhani,sans-serif}';document.head.appendChild(s)}

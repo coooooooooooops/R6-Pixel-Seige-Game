@@ -1,0 +1,17 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+/index.html
+  Cache-Control: no-cache
+/game.html
+  Cache-Control: no-cache
+/*.js
+  Cache-Control: no-cache
+/version.json
+  Cache-Control: no-cache
+/R6-Pixel-Siege.zip
+  Content-Type: application/zip
+  Content-Disposition: attachment; filename="R6-Pixel-Siege.zip"
+  Cache-Control: no-cache
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
