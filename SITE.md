@@ -29,3 +29,6 @@ so the site and the downloadable zip are always the latest `main`.
 
 ## Test locally
 `node tools/build-site.js && npx serve dist` (or `python3 -m http.server -d dist 8080`), then open http://localhost:8080
+
+## Phones and tablets
+`site/touch.js` (touch devices only) sizes the page to the real visible area, fits the game to the screen and puts a small control set in the side bars (2 sticks + 8 buttons, a MORE page for the rest). Landscape only: portrait shows a rotate prompt. On iPhone, Safari/Chrome cannot do true fullscreen: use Share > Add to Home Screen and open it from the icon for no browser bars. Force on/off with `?touch=1` / `?touch=0`.

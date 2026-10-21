@@ -29,6 +29,8 @@ fs.writeFileSync(path.join(OUT,'R6-Pixel-Siege.zip'),zip(ext));
 let html=fs.readFileSync(path.join(ROOT,'game.html'),'utf8');
 html=html.replace('<meta charset="utf-8">','<meta charset="utf-8"><script>window.R6_WEB=1</script><link rel="icon" href="icons/48.png"><meta name="description" content="R6 Pixel Siege: a 2D pixel-art tactical breach and clear shooter. Play free in your browser, host or join online rooms, or install the Chrome extension.">');
 html=html.replace(/<title>[^<]*<\/title>/,'<title>R6 Pixel Siege</title>');
+// phones: no zoom, dark browser bar, and Add-to-Home-Screen on iPhone opens it full screen with no browser bars
+html=html.replace(/<meta name="viewport"[^>]*>/,'<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"><meta name="theme-color" content="#060607"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="R6 Pixel Siege"><link rel="apple-touch-icon" href="icons/128.png">');
 if(!/<\/body>/i.test(html))html+='</body>';
 html=html.replace(/<\/body>/i,'<script src="web.js"></script><script src="touch.js"></script></body>');
 fs.writeFileSync(path.join(OUT,'index.html'),html);
