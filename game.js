@@ -659,12 +659,21 @@ const HOSTOP={id:'host',c:['#e07b1a','#3a2a1a','#ffffff']};
 const GL={lmg:10,ar2:8,bar:10,snp:13,asg:9,mp:5,rev:5,ar:9,smg:7,sg:9,dmr:11,pst:5};for(const k in WP)if(WP[k].a&&!GL[k])GL[k]=GL[WP[k].a];
 function drawGun(e,x,y){const L=GL[e.wp[e.sel]]||6,ca=Math.cos(e.a),sa=Math.sin(e.a),bx=x+ca*3,by=y-2+sa*3;for(let i=0;i<L;i++){g.fillStyle=(!e.bot&&window.CXR&&CXR.gunCol(i,L))||(i>L-3?'#2d2e33':'#15161a');g.fillRect(Math.round(bx+ca*i)-1,Math.round(by+sa*i)-1,2,2)}g.fillStyle='#5a606a';g.fillRect(Math.round(bx+ca*2)-1,Math.round(by+sa*2)-1,1,1);
  if(e.fl>0){const tx=Math.round(bx+ca*(L+1)),ty=Math.round(by+sa*(L+1));const fc=(!e.bot&&window.CXR&&CXR.flash())||['#fff3b0','#ffb030'];g.fillStyle=fc[1];g.fillRect(tx-2,ty-2,4,4);g.fillStyle=fc[0];g.fillRect(tx-1,ty-1,2,2)}}
+/* sideways lean: the sprite is drawn one pixel row at a time; legs stay planted and the torso + head curve out to dx (smooth S-curve through the waist) */
+function leanBlit(img,dx,fl){for(let r=0;r<18;r++){const t=Math.max(0,Math.min(1,(11-r)/8)),o=Math.round(dx*t*t*(3-2*t))*(fl?-1:1);g.drawImage(img,0,r,14,1,-7+o,-12+r,14,1)}}
 function drawEnt(e){const dir=Math.sin(e.a)>.65?'down':Math.sin(e.a)<-.65?'up':'side',fl=dir==='side'&&Math.cos(e.a)<0,S=spritesFor(e.op,!e.bot),f=e.mv>.1?1+(Math.floor(e.ph||0)%2):0,x=Math.round(e.x),y=Math.round(e.y);
- g.fillStyle='rgba(0,0,0,.4)';g.beginPath();g.ellipse(x,y+5,6,3,0,0,7);g.fill();if(e.bot||!window.CXR||!CXR.ring(g,x,y,e.side)){g.strokeStyle=e.side==='A'?'rgba(255,155,58,.85)':'rgba(74,168,255,.85)';g.lineWidth=1;g.beginPath();g.ellipse(x,y+5,7.5,3.8,0,0,7);g.stroke()}
- if(dir==='up')drawHand(e,x,y);
- g.save();g.translate(x,y);if(fl)g.scale(-1,1);g.drawImage(S[dir][f],-7,-12);if(e.hurtT>0){g.globalAlpha=.65;g.drawImage(S.w[dir][f],-7,-12);g.globalAlpha=1}g.restore();if(!e.bot&&window.CXR&&e.alive){CXR.hat(g,e,x,y,dir,fl);CXR.plate(g,e,x,y)}
- if(dir!=='up')drawHand(e,x,y);
- if(e.op.id==='montagne'){g.save();g.translate(x+Math.cos(e.a)*11,y-2+Math.sin(e.a)*11);g.rotate(e.a);g.fillStyle='#050608';g.fillRect(-2,-10,5,20);g.fillStyle='#8fa3bf';g.fillRect(-1,-9,3,18);g.fillStyle='#cfe4ff';g.fillRect(-1,-9,1,18);g.fillStyle='#2a3445';g.fillRect(0,-4,1,8);g.restore()}}
+ /* lean: feet, shadow and ring stay planted; legs stay planted and the torso bends out (sideways: row-by-row S-curve; up/down: shift + slight stretch) so the head ends up exactly where the eye / hitbox is (ex,ey) */
+ const lean=e.ex!==undefined&&Math.abs(e.ln||0)>.05,dx=lean?e.ex-e.x:0,dy=lean?e.ey-e.y:0,
+  bx=Math.round(x+dx*.1),by=Math.round(y+dy*.5),cx=Math.round(x+dx*.7),cy=Math.round(y+dy*.7),hx=Math.round(x+dx),hy=Math.round(y+dy);
+ g.fillStyle='rgba(0,0,0,.4)';g.beginPath();g.ellipse(x,y+5,6,3,0,0,7);g.fill();
+ if(lean){g.fillStyle='rgba(0,0,0,.22)';g.beginPath();g.ellipse(Math.round(x+dx*.6),Math.round(y+dy*.6)+5,6,3,0,0,7);g.fill()}
+ if(e.bot||!window.CXR||!CXR.ring(g,x,y,e.side)){g.strokeStyle=e.side==='A'?'rgba(255,155,58,.85)':'rgba(74,168,255,.85)';g.lineWidth=1;g.beginPath();g.ellipse(x,y+5,7.5,3.8,0,0,7);g.stroke()}
+ if(dir==='up')drawHand(e,cx,cy);
+ g.save();g.translate(bx,by);if(lean&&dy)g.scale(1,1-dy*.3/9);if(fl)g.scale(-1,1);
+ if(lean&&Math.abs(dx)>.5){leanBlit(S[dir][f],dx,fl);if(e.hurtT>0){g.globalAlpha=.65;leanBlit(S.w[dir][f],dx,fl);g.globalAlpha=1}}
+ else{g.drawImage(S[dir][f],-7,-12);if(e.hurtT>0){g.globalAlpha=.65;g.drawImage(S.w[dir][f],-7,-12);g.globalAlpha=1}}g.restore();if(!e.bot&&window.CXR&&e.alive){CXR.hat(g,e,hx,hy,dir,fl);CXR.plate(g,e,bx,by)}
+ if(dir!=='up')drawHand(e,cx,cy);
+ if(e.op.id==='montagne'){g.save();g.translate(cx+Math.cos(e.a)*11,cy-2+Math.sin(e.a)*11);g.rotate(e.a);g.fillStyle='#050608';g.fillRect(-2,-10,5,20);g.fillStyle='#8fa3bf';g.fillRect(-1,-9,3,18);g.fillStyle='#cfe4ff';g.fillRect(-1,-9,1,18);g.fillStyle='#2a3445';g.fillRect(0,-4,1,8);g.restore()}}
 function drawDead(e){const S=spritesFor(e.op);g.save();g.translate(Math.round(e.x),Math.round(e.y)+3);g.rotate(PI/2);g.globalAlpha=.75;g.drawImage(S.down[0],-7,-9);g.restore();g.globalAlpha=1}
 // ---------- state ----------
 let G=null,keys={},mouse={x:0,y:0,down:false},cam={x:0,y:0},dk=mkc(VW,VH),dkg=dk.getContext('2d'),fcache={},uiSel={mapPick:0,mode:'bomb',side:'A',op:0};
@@ -907,7 +916,7 @@ function render(){const me=G.me;TBH=false;g.fillStyle='#07090d';g.fillRect(0,0,V
  const marks=[];
  for(const e of G.ents)if(!e.alive)drawDead(e);
  for(const e of [...G.ents].sort((a,b)=>a.y-b.y)){if(!e.alive)continue;const v=visible(e);if(!v)continue;if(v==='pulse'){marks.push([e,'#ff4a6a']);continue}
-  if(e.ex!==undefined&&Math.abs(e.ln||0)>.05){const bx=e.x,by=e.y;e.x=e.ex;e.y=e.ey;drawEnt(e);e.x=bx;e.y=by}else drawEnt(e);
+  drawEnt(e);
   if(e.say&&e.say.t>0)T8(e.say.s,e.x,e.y-30,'#9fe8ff','center');
   if(e===me){g.fillStyle='#ffe14a';g.beginPath();g.moveTo(e.x,e.y-17);g.lineTo(e.x+3,e.y-21);g.lineTo(e.x-3,e.y-21);g.fill()}
   else{g.fillStyle='#000c';g.fillRect(Math.round(e.x)-8,Math.round(e.y)-18,16,3);g.fillStyle=e.side===me.side?'#6aff9a':'#ff4a4a';g.fillRect(Math.round(e.x)-7,Math.round(e.y)-17,Math.round(14*Math.max(0,e.hp/e.mhp)),1)}
