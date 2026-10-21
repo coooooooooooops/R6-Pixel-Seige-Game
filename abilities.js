@@ -338,6 +338,6 @@ function bhit(x,y,dmg,src){const s=st();if(!s||!src)return false;
   for(const arr of[s.ban,s.jam,s.ads,s.mag])for(let i=arr.length-1;i>=0;i--){const d=arr[i];if(dst(d.x,d.y,x,y)<6){d.hp=(d.hp===undefined?25:d.hp)-dmg;boom(d.x,d.y,3,'#8fa3bf');if(d.hp<=0){arr.splice(i,1);boom(d.x,d.y,10,'#8fa3bf')}return true}}}
  if(src.side==='A')for(const r of s.rov)if(dst(r.x,r.y,x,y)<6){r.hp-=dmg;boom(r.x,r.y,3,'#8fa3bf');return true}
  return false}
-window.R6A={devs,bhit,DEF,install,use,tick,draw,label:e=>{const d=DEF[e.op.gd];return d?d.L:null},state:()=>st(),brk,rcBoom};
+window.R6A={bhit,DEF,install,use,tick,draw,label:e=>{const d=DEF[e.op.gd];return d?d.L:null},state:()=>st(),brk,rcBoom};
 install();
 })();
