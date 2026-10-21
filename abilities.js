@@ -74,7 +74,7 @@ function killDev(d,dmg){const s=st();
  if(d.k==='cam'){d.o.hp-=dmg||999;if(d.o.hp<=0){d.o.alive=0;boom(d.x,d.y,10,'#8fa3bf')}else boom(d.x,d.y,4,'#7ed0ff')}
  else{const arr=d.k==='mine'?s.mine:d.k==='ban'?s.ban:d.k==='jam'?s.jam:d.k==='ads'?s.ads:d.k==='mag'?s.mag:d.k==='elec'?s.elec:G.traps,i=arr.indexOf(d.o);if(i>=0)arr.splice(i,1);boom(d.x,d.y,8,'#7ed0ff')}
  sfx(1200,.08,'sawtooth',.05)}
-function flyDrone(e){const d=G.dc>=0&&e===G.me?G.drones[G.dc]:null;return d&&d.alive&&d.fly?d:null}
+function flyDrone(e){const d=G.dc>=0&&e===G.me?G.drones[G.dc]:null;return d&&d.alive&&d.fly&&d.ctrl===e?d:null}
 function putCam(e,o){const a0=e.a;let h=null,ang=a0;const tries=e===G.me?[0]:[0,.785,-.785,1.57,-1.57,2.36,-2.36,3.14];
  for(const d of tries){e.a=a0+d;const r=rayHit(e,d?44:70);if(WALL(r.t)){h=r;ang=e.a;break}}
  e.a=a0;if(!h)return null;

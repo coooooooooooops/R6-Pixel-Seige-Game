@@ -578,17 +578,19 @@ function bigMap(me){if(!G.bm)return;const fl=G.bmf?OY:0,ox0=BX0-2,oy0=fl+BY0-2,t
  if(G.mode==='bomb')for(const q of SITES)if(on(q[1])){const[px,py]=P(q[0],q[1]);g.fillStyle='#ffb62e';g.fillRect(px-3,py-3,7,7);T8(q[2],px,py-14,'#ffb62e','center')}
  if(me.side==='D')for(const c of G.cams)if(c.alive&&on(c.y)){const[px,py]=P(c.x,c.y);g.fillStyle='#ff4a4a';g.fillRect(px-2,py-2,4,4)}
  for(const e of G.ents)if(e.alive&&on(e.y)&&e!==me&&(e.side===me.side||visible(e))){const[px,py]=P(e.x,e.y);g.fillStyle='#000';g.fillRect(px-3,py-3,7,7);g.fillStyle=e.side==='A'?'#ff5a60':'#c4c8d0';g.fillRect(px-2,py-2,5,5)}
- for(const d of G.drones)if(d.alive&&on(d.y)){const[px,py]=P(d.x,d.y);g.fillStyle='#000';g.fillRect(px-3,py-3,7,7);g.fillStyle='#7ed0ff';g.fillRect(px-2,py-2,5,5)}
+ for(const d of G.drones)if(d.alive&&on(d.y)&&dSee(d)){const[px,py]=P(d.x,d.y);g.fillStyle='#000';g.fillRect(px-3,py-3,7,7);g.fillStyle=d.own.side===me.side?'#7ed0ff':'#ff5a60';g.fillRect(px-2,py-2,5,5)}
  if(me.alive&&on(me.y)){const[px,py]=P(me.x,me.y);g.fillStyle='#000';g.fillRect(px-4,py-4,9,9);g.fillStyle='#fff';g.fillRect(px-3,py-3,7,7);g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.moveTo(px,py);g.lineTo(px+Math.cos(me.a)*10,py+Math.sin(me.a)*10);g.stroke()}
  g.restore();g.strokeStyle='#3a3a42';g.lineWidth=1;g.strokeRect(mx-.5,my-.5,dw+1,dh+1);
  T8((fl?'FLOOR 2':'FLOOR 1')+'   //   '+(MAPS[CURM]?MAPS[CURM].n.toUpperCase():''),6,3,'#fff');T8('TAB: SWITCH FLOOR     M / ESC: CLOSE',VW/2,VH2-12,'#8fa3bf','center')}
 function hudExtra(me){
  if(me.alive&&me.stam!==undefined&&me.stam<.999){const w=60,x=6,ry=lrow(10),y=ry+3;g.fillStyle='#000a';g.fillRect(x-1,y-1,w+2,5);g.fillStyle=me.tired?'#ff6a4a':'#7ed0ff';g.fillRect(x,y,Math.round(w*me.stam),3);T8('SPRINT',x+w+5,ry,'#8fa3bf')}
  if(G.prog){const w=96,x=VW/2-w/2,y=VH2-44;g.fillStyle='#000c';g.fillRect(x-3,y-13,w+6,21);T8(G.prog.t,VW/2,y-11,G.prog.c||'#ffe14a','center',w+2);g.fillStyle='#1a1d24';g.fillRect(x,y,w,5);g.fillStyle=G.prog.c||'#ffe14a';g.fillRect(x,y,Math.round(w*cl(G.prog.v,0,1)),5)}
- if(me.side==='A'&&me.alive&&G.drones.length&&G.phase!=='end'){let x=6;const y=lrow(13)+1;for(const d of G.drones){const act=CD()===d&&DRN(),f=cl(d.hp/d.mhp,0,1);g.fillStyle=act?'#ef3a42':'#000a';g.fillRect(x-1,y-1,26,12);g.fillStyle=d.alive?'#15181d':'#2a1010';g.fillRect(x,y,24,10);T8(d.fly?'S':String(d.n),x+2,y+1,d.alive?'#e8e8e8':'#6a3a3a');if(d.alive){g.fillStyle=f>.5?'#6aff9a':f>.25?'#ffd27a':'#ff4a4a';g.fillRect(x+10,y+3,Math.round(12*f),4)}else T8('x',x+14,y+1,'#6a3a3a');x+=28}T8('C: DRONE',x+2,y+1,'#8fa3bf')}
+ if(me.side==='A'&&me.alive&&G.phase!=='end'){const L=[];for(const n of[1,2,3]){const d=G.drones.find(q=>q.own===me&&q.n===n);if(d)L.push(d);else if(n===2&&me.dr2)L.push({st:1,n:2})}
+  if(L.length){let x=6;const y=lrow(13)+1;for(const d of L){const act=!d.st&&CD()===d&&DRN(),f=d.st?0:cl(d.hp/d.mhp,0,1);g.fillStyle=act?'#ef3a42':'#000a';g.fillRect(x-1,y-1,26,12);g.fillStyle=d.st||d.alive?'#15181d':'#2a1010';g.fillRect(x,y,24,10);T8(d.fly?'S':String(d.n),x+2,y+1,d.st?(G.phase==='act'?'#6aff9a':'#8fa3bf'):d.alive?'#e8e8e8':'#6a3a3a');
+   if(d.st){if(G.phase==='act'){g.strokeStyle='#6aff9a';g.lineWidth=1;g.strokeRect(x+10.5,y+3.5,11,3)}else T8('---',x+8,y+1,'#6a7380',undefined,15)}else if(d.alive){g.fillStyle=f>.5?'#6aff9a':f>.25?'#ffd27a':'#ff4a4a';g.fillRect(x+10,y+3,Math.round(12*f),4)}else T8('x',x+14,y+1,'#6a3a3a');x+=28}T8('C: DRONE',x+2,y+1,'#8fa3bf')}}
  let hint='';
  if(G.arm)hint=(G.arm.kind==='throw'?'CLICK: THROW':'CLICK: PLACE')+'   RIGHT CLICK: CANCEL';
- else if(DRN())hint='DRONE '+CD().n+(CD().fly?' ('+CD().nm+')':'')+':  WASD DRIVE   CLICK TAG'+(CD().fly?' / USE POWER':'')+'   RIGHT CLICK PING   C NEXT';
+ else if(DRN())hint=CD().ctrl!==G.me?CD().own.nm+' DRONE '+CD().n+':  VIEW ONLY   RIGHT CLICK PING   C NEXT':'DRONE '+CD().n+(CD().fly?' ('+CD().nm+')':'')+':  WASD DRIVE   CLICK TAG'+(CD().fly?' / USE POWER':'')+'   RIGHT CLICK PING   C NEXT';
  else if(me.alive&&G.phase!=='end'&&!DRN()&&G.cv<0){const r=rayHit(me,26);
   if(r.t===9)hint='HOLD F: CROWBAR';else if(me.rps==='hang'){const w=rapWinAt(me.rs,me.rq),hz=me.rs==='n'||me.rs==='s';hint=(hz?'A/D':'W/S')+': SLIDE ALONG WALL   '+(w?(winState(w.a)===4?'WINDOW REINFORCED':'HOLD X: KICK IN'):'HOLD X: DESCEND')+(w?'   AWAY+X: DESCEND':'')}
   else{const n=G.phase==='act'?rapNear(me):null;if(n)hint=n.k==='g'?'HOLD X: RAPPEL UP':'HOLD X: RAPPEL OUT';else if(G.phase==='prep'&&me.side==='D'&&!G.prog)hint='HOLD CLICK: REINFORCE WALL    HOLD B: BARRICADE DOOR'}}
@@ -730,19 +732,19 @@ function buildBarrOld(){const me=G&&G.me;if(!me||!me.alive||me.side!=='D'||G.pha
 function bqOne(){const d=G.bq&&G.bq.pop();if(d)putBarr(d[0],d[1],0)}
 function rqOne(){const w=G.rq.pop();if(w&&map[w[1]][w[0]]===3){setTile(w[0],w[1],4);G.reinf++;sfx(300,.1,'square',.05)}}
 function newRound(){setMap(uiSel.mapIdx||0,(uiSel.side==='D'&&uiSel.dsite>=0)?uiSel.dsite:null);buildMap();resolveSpawns();fcache={};const mode=uiSel.mode,side=uiSel.side,me=getOp(side,uiSel.op);
- G={mode,side,phase:'prep',t:2700,rq:[],cams:CAMTILES.map(c=>({x:c[0]*T+8,y:(c[1]+1)*T+3,wy:c[1]*T,a:PI/2,hp:40,alive:1})),cv:-1,pings:[],ents:[],decals:[],nades:[],shake:0,traps:[],smokes:[],charges:[],fx:[],tr:[],ring:[],feed:[],reinf:0,drones:mkDrones(side,me.bid),dc:side==='A'?0:-1,bomb:{prog:0,act:0,x:SITES[0][0],y:SITES[0][1]},hostage:{x:HOST[0],y:HOST[1],hp:100,carrier:null},sec:0,msg:'',endT:0,res:null};
+ G={mode,side,phase:'prep',t:2700,rq:[],cams:CAMTILES.map(c=>({x:c[0]*T+8,y:(c[1]+1)*T+3,wy:c[1]*T,a:PI/2,hp:40,alive:1})),cv:-1,pings:[],ents:[],decals:[],nades:[],shake:0,traps:[],smokes:[],charges:[],fx:[],tr:[],ring:[],feed:[],reinf:0,drones:[],dc:-1,bomb:{prog:0,act:0,x:SITES[0][0],y:SITES[0][1]},hostage:{x:HOST[0],y:HOST[1],hp:100,carrier:null},sec:0,msg:'',endT:0,res:null};
  const at=side==='A'?[me,...pick(OPS.A,4,me)]:pick(OPS.A,5),df=side==='D'?[me,...pick(OPS.D,4,me)]:pick(OPS.D,5);
  at.forEach((o,i)=>{const q=spawnFor(i);G.ents.push(mkEnt('A',o,!(side==='A'&&i===0),q[0],q[1],side==='A'&&i===0?'YOU':undefined))});
  const OBJ=mode==='hostage'?HOST:SITES[mode==='bomb'&&Math.random()<.5?1:0],oyf=OBJ[1]>=OY*T?OY:0;G.asite=Math.random()<.5?0:1;at.forEach((e,i)=>{});for(const e of G.ents){if(e.side==='A'){e.site=G.asite;e.dl=Math.random()*400+120}}
  const sp=spots(mode);
  df.forEach((o,i)=>{const e=mkEnt('D',o,!(side==='D'&&i===0),sp[i][0]*T+8,sp[i][1]*T+8,side==='D'&&i===0?'YOU':undefined);e.post={x:e.x,y:e.y};e.role=i%2?'roam':'anchor';G.ents.push(e)});
- G.me=G.ents.find(e=>!e.bot);for(const e of G.ents){const L=G2[e.side];e.g2=e.bot?L[Math.random()*2|0]:(uiSel.g2[e.op.bid]||L[0]);e.g2n=2}
+ G.me=G.ents.find(e=>!e.bot);mkDrones();G.dc=side==='A'?0:-1;for(const e of G.ents){const L=G2[e.side];e.g2=e.bot?L[Math.random()*2|0]:(uiSel.g2[e.op.bid]||L[0]);e.g2n=2}
  // bot defenders reinforce + place gadgets
  const softs=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(map[y][x]===3&&(x===BX0||x===BX1||y===BY0||y===BY1||dst(x*T+8,y*T+8,OBJ[0],OBJ[1])<230))softs.push([x,y]);
  softs.sort((p,q)=>dst(p[0]*T+8,p[1]*T+8,OBJ[0],OBJ[1])-dst(q[0]*T+8,q[1]*T+8,OBJ[0],OBJ[1]));G.rq=[];
  const doors=(oyf?DOORSU:DOORS).map(d=>[d[0],d[1]+oyf,d[2]]).sort((p,q)=>dst(p[0]*T,p[1]*T,OBJ[0],OBJ[1])-dst(q[0]*T,q[1]*T,OBJ[0],OBJ[1])).slice(0,16);G.barr=0;G.bcd=0;G.bq=[];
  planSetup(softs.slice(0,side==='A'?REINF:REINF-4),doors.slice(0,side==='A'?6:3),doors);
- G.msg=side==='A'?'PREP: DRIVE DRONE (WASD), CLICK TAGS, C = NEXT DRONE':'PREP: REINFORCE WALLS ('+REINF+') AND BARRICADE DOORS';
+ G.msg=side==='A'?'PREP: DRIVE DRONE 1 (WASD), CLICK TAGS, C = NEXT / TEAMMATE CAMS':'PREP: REINFORCE WALLS ('+REINF+') AND BARRICADE DOORS';
  document.getElementById('over').style.display='none'}
 // ---------- bots ----------
 function botAI(e){if(e.say&&e.say.t>0)e.say.t--;if(e.rx&&--e.rx.t<=0)e.rx=null;const foes=G.ents.filter(o=>o.alive&&o.side!==e.side);let tgt=null,bd=1e9;
@@ -795,7 +797,7 @@ function update(){const me=G.me;
  // player
  if(me.alive){let dx=(keys.d?1:0)-(keys.a?1:0),dy=(keys.s?1:0)-(keys.w?1:0);const l=Math.hypot(dx,dy)||1;dx/=l;dy/=l;
   const wx=mouse.x+cam.x,wy=mouse.y+cam.y;
-  if(DRN()){driveDrone(G.drones[G.dc],dx,dy)}
+  if(DRN()){const dd=G.drones[G.dc];if(dd.ctrl===me)driveDrone(dd,dx,dy)}
   else{if(G.phase==='act'||me.side==='D'){if(me.stam===undefined)me.stam=1;const mvg=!!(keys.w||keys.a||keys.s||keys.d),spr=!!(keys.shift&&mvg&&!me.lock&&me.rps!=='hang'&&me.stam>(me.tired?.3:0)&&!mouse.down&&!G.arm&&G.hostage.carrier!==me&&me.stun<=0&&me.slow<=0);
    if(spr){me.stam=Math.max(0,me.stam-1/SPR_T);if(me.stam<=0)me.tired=1}else{me.stam=Math.min(1,me.stam+1/SPR_R);if(me.stam>=.3)me.tired=0}me.spr=spr;
    const sp=PACE*me.op.sp*(spr?SPRINT:keys.alt?.5:1)*(me.slow>0?.4:1)*(me.stun>0?0:1)*(G.hostage.carrier===me?.8:1);if(!me.lock)moveEnt(me,dx*sp,dy*sp);me.mv=me.lock?0:Math.hypot(dx,dy)*(spr?1.25:keys.alt?.4:1)}
@@ -803,7 +805,8 @@ function update(){const me=G.me;
   if(keys.e&&G.phase==='act'&&!DRN())interact(me)}
  else if(keys.enter)for(let i=0;i<3;i++){}
  for(const e of G.ents){if(!e.alive)continue;e.cd>0&&e.cd--;e.rl>0&&e.rl--;e.blind>0&&e.blind--;e.stun>0&&e.stun--;e.slow>0&&e.slow--;e.tag>0&&e.tag--;e.gcd>0&&e.gcd--;e.pulse>0&&e.pulse--;e.pcd>0&&e.pcd--;e.hurtT>0&&e.hurtT--;e.fl>0&&e.fl--;e.g2cd>0&&e.g2cd--;e.cwo>0&&e.cwo--;e.ph=(e.ph||0)+(e.mv>.1?.17:0);
-  if(e.bot&&(G.phase==='act'||(G.phase==='prep'&&e.side==='D'))&&e.stun<=0){if(G.phase==='prep'){e.mv=0;botPrep(e)}else{e.mv=0;botAI(e)}}
+  if(e.bot&&e.side==='A'&&botDroning(e)){e.mv=0}
+  else if(e.bot&&(G.phase==='act'||(G.phase==='prep'&&e.side==='D'))&&e.stun<=0){if(G.phase==='prep'){e.mv=0;botPrep(e)}else{e.mv=0;botAI(e)}}
   stairs(e);if(e.hostageCarry)e.hostageCarry=0}
  if(G.hostage.carrier&&G.hostage.carrier.alive){const c=G.hostage.carrier;G.hostage.x=c.x-Math.cos(c.a)*5;G.hostage.y=c.y-Math.sin(c.a)*5;c.hostageCarry=1}
  // traps
@@ -816,6 +819,7 @@ function update(){const me=G.me;
  if(G.phase==='act')objectives();
  updFx()}
 function botIdlePrep(e){if(e.faced)return;let bd=1e9,ba=e.a;const of=e.y>=OY*T?OY:0;for(const d of(of?DOORSU:DOORS)){const dx=d[0]*T+8,dy=(d[1]+of)*T+8,dd=dst(e.x,e.y,dx,dy);if(dd<bd&&dd>20){bd=dd;ba=Math.atan2(dy-e.y,dx-e.x)}}e.a=ba;e.faced=1}
+const dSee=d=>{const me=G.me;if(d.own.side===me.side)return true;const vp=G.cv>=0?G.cams[G.cv]:eyeOf(me),q=dst(vp.x,vp.y,d.x,d.y);return q<250&&los(vp.x,vp.y,d.x,d.y)&&!inSmoke(d.x,d.y)};
 const DRN=()=>G.me.side==='A'&&G.phase!=='end'&&G.dc>=0&&!!G.drones[G.dc]&&G.drones[G.dc].alive,CD=()=>G.drones[G.dc];
 const EX=e=>e.ex===undefined?e.x:e.ex,EY=e=>e.ey===undefined?e.y:e.ey,eyeOf=e=>e.ex===undefined?e:{x:e.ex,y:e.ey},LEAN_D=9;
 function leanUpd(e){let w=(keys.v?1:0)-(keys.z?1:0);if(!e.alive||e.lock||e.stun>0||e.spr||e.rps||G.phase==='end'||DRN()||G.cv>=0)w=0;
@@ -842,7 +846,7 @@ function doPing(vp){const me=G.me;if(!me.alive||G.phase==='end'||mouse.y>VH2)ret
  while(G.pings.length>4)G.pings.shift();sfx(1200,.08,'sine',.04);G.ring.push({x:G.pings[G.pings.length-1].x,y:G.pings[G.pings.length-1].y,r:2,c:hit?'#ff4a4a':'#ffd27a'})}
 const pingView=()=>doPing(G.cv>=0?G.cams[G.cv]:DRN()?CD():G.me);
 function exitView(){if(G.cv>=0||DRN()){G.cv=-1;G.dc=-1;G.msg='VIEW CLOSED'}}
-const EXB={x:VW/2-34,y:6,w:68,h:14},inExit=()=>mouse.x>=EXB.x&&mouse.x<=EXB.x+EXB.w&&mouse.y>=EXB.y&&mouse.y<=EXB.y+EXB.h;
+const EXB={x:VW/2-34,y:VH-122,w:68,h:14},inExit=()=>mouse.x>=EXB.x&&mouse.x<=EXB.x+EXB.w&&mouse.y>=EXB.y&&mouse.y<=EXB.y+EXB.h;
 function drawPings(){const me=G.me,fx=G.cv>=0?G.cams[G.cv]:DRN()?CD():me,fl=fx.y>=OY*T;
  for(const p of G.pings){const a=Math.min(1,p.t/60),pr=(G.t%40)/40;g.globalAlpha=a;g.strokeStyle=p.c;g.lineWidth=1;g.beginPath();g.arc(p.x,p.y,4+pr*10,0,7);g.stroke();
   g.fillStyle='#000';g.fillRect(p.x-5,p.y-19,10,12);g.fillStyle=p.c;g.beginPath();g.moveTo(p.x,p.y-18);g.lineTo(p.x+4,p.y-13);g.lineTo(p.x,p.y-8);g.lineTo(p.x-4,p.y-13);g.fill();T8(p.l,p.x,p.y-28,p.c,'center');g.globalAlpha=1}}
@@ -913,7 +917,7 @@ function render(){const me=G.me;TBH=false;g.fillStyle='#07090d';g.fillRect(0,0,V
  for(const s of G.smokes){g.fillStyle=s.gas?'rgba(120,220,80,.55)':'rgba(190,190,190,.7)';for(let i=0;i<8;i++){const a=i*.8+G.t/50;g.beginPath();g.arc(s.x+Math.cos(a)*s.r*.5,s.y+Math.sin(a)*s.r*.5,s.r*.55,0,7);g.fill()}}
  g.lineWidth=1;for(const t of G.tr){if(t.pl&&window.CXR&&CXR.trace(g,t))continue;g.strokeStyle='#fff3b0';g.globalAlpha=t.t/3;g.beginPath();g.moveTo(Math.round(t.x1)+.5,Math.round(t.y1)+.5);g.lineTo(Math.round(t.x2)+.5,Math.round(t.y2)+.5);g.stroke()}g.globalAlpha=1;
  for(const f of G.fx){if(f.sh&&window.CXR)CXR.fx(g,f);else{g.fillStyle=f.c;g.fillRect(f.x|0,f.y|0,2,2)}}for(const r of G.ring){g.strokeStyle=r.c;g.globalAlpha=1-r.r/60;g.beginPath();g.arc(r.x,r.y,r.r,0,7);g.stroke()}g.globalAlpha=1;
- for(const d of G.drones)if(d.alive)drawDrone(d);
+ for(const d of G.drones)if(d.alive&&dSee(d))drawDrone(d);
  drawWorldExtra();drawPings();
  if(G.phase==='prep'&&me.side==='D'){const tx=(mouse.x+cam.x)/T|0,ty=(mouse.y+cam.y)/T|0;if(tx>=0&&ty>=0&&tx<W&&ty<H&&map[ty][tx]===3){g.strokeStyle=G.reinf<REINF?'#ffe14a':'#f44';g.lineWidth=1;g.strokeRect(tx*T+.5,ty*T+.5,T-1,T-1)}else if(tx>=0&&ty>=0&&tx<W&&ty<H&&map[ty][tx]===5){g.strokeStyle=G.barr<BARR?'#ffcf6a':'#f44';g.lineWidth=1;for(const q of[[tx,ty],doorPair(tx,ty)])if(q)g.strokeRect(q[0]*T+.5,q[1]*T+.5,T-1,T-1)}}
  g.restore();
@@ -945,7 +949,7 @@ function hud(me){TBH=true;const al=G.ents.filter(e=>e.alive);const bar=(x,y,w,h,
  g.fillStyle='rgba(8,10,14,.92)';g.fillRect(mx,my,142,86);g.fillStyle=me.side==='A'?'#ef3a42':'#c4c8d0';g.fillRect(mx,my,142,2);g.save();g.beginPath();g.rect(mx+5,my+4,132,78);g.clip();g.drawImage(mapC,ox0*T,oy0*T,tw*T,th*T,mx+5,my+4,tw*ms,th*ms);g.fillStyle='rgba(8,12,22,.35)';g.fillRect(mx+5,my+4,132,78);
  {const[cx,cy]=P(cam.x,cam.y);g.strokeStyle='#fff';g.lineWidth=1;g.strokeRect(cx+.5,cy+.5,VW/T*ms,VH2/T*ms)}
  for(const e of G.ents)if(e.alive&&on(e.y)&&(e.side===me.side||visible(e))){const[px,py]=P(e.x,e.y);g.fillStyle=e===me?'#fff':e.side==='A'?'#ff5a60':'#c4c8d0';g.fillRect(px-1,py-1,3,3)}
- for(const d of G.drones)if(d.alive&&on(d.y)){const[px,py]=P(d.x,d.y);g.fillStyle='#7ed0ff';g.fillRect(px-1,py-1,3,3)}
+ for(const d of G.drones)if(d.alive&&on(d.y)&&dSee(d)){const[px,py]=P(d.x,d.y);g.fillStyle=d.own.side===me.side?'#7ed0ff':'#ff5a60';g.fillRect(px-1,py-1,3,3)}
  for(const p of G.pings)if(on(p.y)){const[px,py]=P(p.x,p.y);g.fillStyle=p.c;g.fillRect(px-2,py-2,5,5)}
  if(me.side==='D')for(const c of G.cams)if(c.alive&&on(c.y)){const[px,py]=P(c.x,c.y);g.fillStyle='#ff4a4a';g.fillRect(px-1,py-1,2,2)}
  if(G.mode==='bomb')for(const q of SITES)if(on(q[1])){const[px,py]=P(q[0],q[1]);T8(q[2],px,py-4,'#ffb62e','center')}
@@ -1128,12 +1132,17 @@ showScr('main');try{document.fonts.load('8px Silkscreen')}catch(e){}
 
 // ---------- drones v2 (ground, 2 per attacker, whole round) + bot setup like a player ----------
 const DR_R=6,DR_SP=1.5,DR_HP=40,FLYD={twitch:'SHOCK DRONE',brava:'KLUDGE DRONE'};
-function mkDrones(side,bid){if(side!=='A')return[];const p=spawnFor(0),L=[];
- [-3,3].forEach((o,i)=>L.push({x:p[0]+o,y:p[1]+(i?3:-3),a:-PI/2,hp:DR_HP,mhp:DR_HP,alive:1,fly:0,roll:0,cd:0,n:i+1,hit:0}));
- if(FLYD[bid])L.push({x:p[0],y:p[1]+4,a:-PI/2,hp:25,mhp:25,alive:1,fly:1,roll:0,cd:0,n:3,hit:0,nm:FLYD[bid]});return L}
+function mkDrone(e,n,fly,force){const hp=fly?25:DR_HP,d={x:e.x,y:e.y,a:e.a||-PI/2,hp,mhp:hp,alive:1,fly:fly?1:0,roll:0,cd:0,n,hit:0,own:e,ctrl:e};if(fly)d.nm=FLYD[e.op.bid];
+ const a=e.a||0;let ok=false;for(const[ox,oy]of[[Math.cos(a)*10,Math.sin(a)*10],[0,-10],[0,10],[10,0],[-10,0],[7,7],[-7,-7],[0,0]])if(dOK(d,e.x+ox,e.y+oy)){d.x=e.x+ox;d.y=e.y+oy;ok=true;break}
+ return ok||force?d:null}
+// every attacker (you and the bots) starts with drone 1 only; drone 2 is stowed (e.dr2) and deployed later from the operator, action phase only
+function mkDrones(){for(const e of G.ents){if(e.side!=='A')continue;e.dr2=1;G.drones.push(mkDrone(e,1,0,1));if(!e.bot&&FLYD[e.op.bid])G.drones.push(mkDrone(e,3,1,1))}}
+function deployDrone2(e){if(!e.dr2||!e.alive||G.phase!=='act')return null;const d=mkDrone(e,2,0);if(!d)return null;e.dr2=0;G.drones.push(d);G.ring.push({x:d.x,y:d.y,r:2,c:'#6aff9a'});sfx(520,.12,'triangle',.05);return d}
+// ownership vs control: d.own never changes, d.ctrl is who can drive it. A future takeover ability only has to call droneTake().
+function droneTake(d,e){if(!d||!d.alive)return;if(G.drones[G.dc]===d&&d.ctrl===G.me&&e!==G.me)G.dc=-1;d.ctrl=e}
 function dOK(d,x,y){const r=DR_R;for(const[ox,oy]of[[-r,-r],[r,-r],[-r,r],[r,r]]){const X=x+ox,Y=y+oy,t=tileAt(X,Y);
   if(d.fly){if(solid(t)){const tx=X/T|0,ty=Y/T|0;if(!(t===3&&(tx===BX0||tx===BX1||ty===BY0||ty===BY1)))return false}}else if(blk(t))return false}return true}
-function driveDrone(d,dx,dy){const s=DR_SP*(keys.alt?.5:1)*(d.fly?1.15:1);
+function driveDrone(d,dx,dy){if(d.ctrl!==G.me)return;const s=DR_SP*(keys.alt?.5:1)*(d.fly?1.15:1);
  if(dx||dy){d.a=turn(d.a,Math.atan2(dy,dx),.25);if(dOK(d,d.x+dx*s,d.y)){d.x+=dx*s;d.roll+=Math.abs(dx*s)}if(dOK(d,d.x,d.y+dy*s)){d.y+=dy*s;d.roll+=Math.abs(dy*s)}}
  if((keys[' ']||mouse.down)&&!inExit()){tagNear(d);if(d.fly)dronePower(d)}}
 function droneStairs(d){if(tileAt(d.x,d.y)===8){if(!d.onst){const q=STP[(d.y/T|0)*W+(d.x/T|0)];if(q!==undefined){d.x=(q%W)*T+8;d.y=((q/W)|0)*T+8;d.onst=1;G.ring.push({x:d.x,y:d.y,r:2,c:'#6aff9a'});if(G.drones[G.dc]===d){sfx(440,.12,'triangle',.04);G.msg='DRONE '+d.n+': '+(d.y>=OY*T?'FLOOR 2':'FLOOR 1')}}}}else d.onst=0}
@@ -1141,8 +1150,18 @@ function updDrones(){for(const d of G.drones){if(!d.alive)continue;d.cd>0&&d.cd-
 function hurtDrone(d,dmg,src){if(!d.alive)return;d.hp-=dmg;d.hit=6;boom(d.x,d.y,3,'#8fa3bf');
  if(d.hp<=0){d.alive=0;boom(d.x,d.y,16,'#8fa3bf');G.ring.push({x:d.x,y:d.y,r:2,c:'#ff8030'});sfx(200,.25,'square',.06);G.feed.push({t:360,s:(src?src.nm:'ENEMY')+' x DRONE '+d.n,c:'#c4c8d0'});
   if(G.drones[G.dc]===d){G.dc=-1;G.msg='DRONE '+d.n+' DESTROYED'}}}
-function cycleDrone(){const L=G.drones;if(!L.length)return;let i=G.dc;do{i++}while(i<L.length&&!L[i].alive);if(i>=L.length)i=-1;G.dc=i;
- G.msg=i>=0?'DRONE '+L[i].n+(L[i].fly?' ('+L[i].nm+')':''):(L.some(d=>d.alive)?'DRONE VIEW OFF':'NO DRONES LEFT')}
+function viewSlots(){const me=G.me,S=[],own=n=>G.drones.find(d=>d.own===me&&d.n===n);
+ const d1=own(1);if(d1&&d1.alive)S.push(d1);
+ const d2=own(2);if(d2){if(d2.alive)S.push(d2)}else if(me.dr2)S.push('st');
+ const d3=own(3);if(d3&&d3.alive)S.push(d3);
+ for(const d of G.drones)if(d.alive&&d.own!==me&&d.own.side===me.side)S.push(d);
+ return S}
+function cycleDrone(){const me=G.me,S=viewSlots();if(!S.length){G.msg='NO DRONES LEFT';return}
+ const cur=G.dc>=0?G.drones[G.dc]:null;let i=cur?S.indexOf(cur):-1,note='';
+ for(;;){i++;if(i>=S.length){G.dc=-1;G.msg=note||'DRONE VIEW OFF';return}
+  const s=S[i];
+  if(s==='st'){if(G.phase!=='act'){note='DRONE 2: ACTION PHASE ONLY';continue}const d=deployDrone2(me);if(!d){note='NO ROOM TO DEPLOY DRONE 2';continue}G.dc=G.drones.indexOf(d);G.msg='DRONE 2 DEPLOYED';return}
+  G.dc=G.drones.indexOf(s);G.msg=s.own===me?'DRONE '+s.n+(s.fly?' ('+s.nm+')':''):s.own.nm+' DRONE '+s.n+(s.ctrl===me?'':' (VIEW ONLY)');return}}
 function dronePower(d){const me=G.me;if(d.cd>0)return;const id=me.op.bid;
  if(id==='twitch'){let b=null,bd=28;for(const e of G.ents)if(e.alive&&e.side==='D'){const q=dst(d.x,d.y,e.x,e.y);if(q<bd&&los(d.x,d.y,e.x,e.y)){b=e;bd=q}}
   const n0=G.traps.length;G.traps=G.traps.filter(t=>dst(t.x,t.y,d.x,d.y)>28);if(b)hurt(b,20,undefined,me);
@@ -1157,7 +1176,34 @@ function drawDrone(d){const x=d.x,y=d.y,b=Math.sin(G.t/5)>0,act=CD()===d&&DRN();
   for(const sy of[-8,5]){g.fillStyle=d.hit>0?'#fff':'#171c19';g.fillRect(-4,sy,8,3);g.fillStyle='#4a574d';for(let i=0;i<4;i++){const px=((i*2+(d.roll*.5|0))%8)-4;g.fillRect(px,sy,1,3)}}
   for(let i=0;i<6;i++){g.fillStyle=(b||i%2)?'#ff3a3a':'#a01818';g.fillRect(0,-4+i*1.5+(i>2?1:0),1,1)}}
  g.restore();
- T8(String(d.n),x-2,y-17,act?'#ef3a42':'#9aa4b0');if(act){g.strokeStyle='#ef3a42';g.lineWidth=1;g.strokeRect(Math.round(x)-9.5,Math.round(y)-9.5,19,19)}}
+ T8(d.own===G.me?String(d.n):d.own.nm+' '+d.n,x,y-17,act?'#ef3a42':'#9aa4b0','center');if(act){g.strokeStyle='#ef3a42';g.lineWidth=1;g.strokeRect(Math.round(x)-9.5,Math.round(y)-9.5,19,19)}}
+// ---- attacker bots use their drones like a player: stand still, drive, tag defenders ----
+function autoDrive(d,gx,gy){const f=field((gy/T|0)*W+(gx/T|0),2),tx=d.x/T|0,ty=d.y/T|0,cur=f[ty*W+tx];
+ if(cur===undefined||cur>=1e4)return -1;if(dst(d.x,d.y,gx,gy)<10)return 1;
+ let best=null,bv=cur;for(const[dx,dy]of D4){const nx=tx+dx,ny=ty+dy;if(nx<0||ny<0||nx>=W||ny>=H)continue;const v=f[ny*W+nx];if(v<bv){bv=v;best=[nx,ny]}}
+ let ax=best?best[0]*T+8:gx,ay=best?best[1]*T+8:gy;if(d.ctr>0){d.ctr--;ax=tx*T+8;ay=ty*T+8}
+ const a=Math.atan2(ay-d.y,ax-d.x),sp=DR_SP*.9,dx=Math.cos(a)*sp,dy=Math.sin(a)*sp;let mv=0;d.a=turn(d.a,a,.25);
+ if(dOK(d,d.x+dx,d.y)){d.x+=dx;mv+=Math.abs(dx)}if(dOK(d,d.x,d.y+dy)){d.y+=dy;mv+=Math.abs(dy)}d.roll+=mv;
+ if(mv<.05){if(++d.stk>30){d.ctr=14;d.stk=0}}else d.stk=0;return 0}
+function botDroneTag(d){let b=null,bd=1e9;for(const o of G.ents)if(o.alive&&o.side==='D'&&o.tag<100){const q=dst(d.x,d.y,o.x,o.y);if(q<150&&q<bd&&los(d.x,d.y,o.x,o.y)&&!inSmoke(o.x,o.y)){b=o;bd=q}}
+ if(!b){d.tg=0;return}if(++d.tg<[4,3,2][SET.diff])return;d.tg=0;
+ if(d.own.side===G.me.side)tagE(b);else{b.tag=900;if(b===G.me)G.msg='TAGGED BY ENEMY DRONE'}}
+function botDroning(e){if(!e.alive||e.stun>0||e.hurtT>0)return false;const act=G.phase==='act';
+ if(act&&(14400-G.t>=e.dl||G.ents.some(o=>o.alive&&o.side==='D'&&dst(e.x,e.y,o.x,o.y)<200&&los(e.x,e.y,o.x,o.y))))return false;
+ let d=null;
+ if(act&&e.dr2&&14400-G.t>25)deployDrone2(e);
+ if(act)d=G.drones.find(q=>q.own===e&&q.ctrl===e&&q.n===2&&q.alive);
+ if(!d)d=G.drones.find(q=>q.own===e&&q.ctrl===e&&q.n===1&&q.alive);
+ if(!d)return false;
+ if(d.gx===undefined){const i=G.ents.indexOf(e),site=(e.site+(d.n===2?1:0)+(i%2))%2,P=G.mode==='bomb'?SITES[site]:G.mode==='hostage'?HOST:SITES[0];d.gx=P[0];d.gy=P[1];d.stk=0;d.tg=0}
+ // careful driving: keep out of shooting range of a defender that can see the drone, tag from there
+ let nb=1e9;for(const o of G.ents)if(o.alive&&o.side==='D'){const q=dst(d.x,d.y,o.x,o.y);if(q<nb&&los(d.x,d.y,o.x,o.y)&&!inSmoke(o.x,o.y))nb=q}
+ const lim=act?162:134;
+ if(nb<lim){const bx=-Math.cos(d.a)*DR_SP*.9,by=-Math.sin(d.a)*DR_SP*.9;if(dOK(d,d.x+bx,d.y))d.x+=bx;if(dOK(d,d.x,d.y+by))d.y+=by;d.roll+=1;if(G.t%15===0)botDroneTag(d);return true}
+ const r=autoDrive(d,d.gx,d.gy);
+ if(r!==0&&G.t%90===0){const a=Math.random()*7,k=20+Math.random()*50,nx=d.gx+Math.cos(a)*k,ny=d.gy+Math.sin(a)*k;if(!blk(tileAt(nx,ny))&&!solid(tileAt(nx,ny))){d.gx=nx;d.gy=ny}}
+ if(G.t%15===0)botDroneTag(d);
+ return true}
 function botDrone(e,rng){if(!G.drones.length)return false;let b=null,bd=1e9;
  for(const d of G.drones)if(d.alive){const q=dst(e.x,e.y,d.x,d.y);if(q<rng&&q<bd&&los(e.x,e.y,d.x,d.y)&&!inSmoke(d.x,d.y)){b=d;bd=q}}
  if(!b){e.dre=0;return false}
