@@ -100,3 +100,7 @@ Sync rules: first time a device meets an account the two are merged (nothing own
 - Optional: Authentication > Passwords > leaked password protection.
 
 Test: `python3 build/test_account.py` (70 checks, fake Supabase that mirrors the verified database rules).
+
+## Playing online (host + friends)
+Open the Online tab, press HOST, share the invite (a code or a one-time link; no server needed on the same network or with a normal connection), and friends press JOIN. The host presses START GAME: everyone picks an operator (attack and defence, plus weapons and gadget) and the host deploys. The host's game runs the match; friends play their own operator in real time, see the same map, gadgets, drones, cameras and sounds, and a whole best-of-5 match flows round to round with side swaps. Late joiners watch the running round and get a seat next round; a player who leaves is replaced by a bot.
+Code: `netplay.js` (sync), `online.js` (lobby), `p2p.js` (WebRTC). Tests: `build/test_netplay1.py` ... `test_netplay9.py` (two real browsers; run with `SIDE=A` and `SIDE=D`; see HANDOFF.md for the batch tip).

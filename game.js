@@ -701,7 +701,7 @@ function hurt(e,d,ang,src){if(!e.alive||e.gh)return;if(e.op.id==='montagne'&&ang
 function fire(e){const w=WP[e.wp[e.sel]];if(e.cd>0||e.rl>0||e.stun>0)return;if(e.op.id==='montagne'&&e.sel===0&&false)return;
  if(e.ammo[e.wp[e.sel]]<=0){reload(e);return}e.ammo[e.wp[e.sel]]--;e.cd=w.cd;e.fl=3;const mv=e.mv>.1?1.5:1;
  for(let i=0;i<w.pel;i++){const a=e.a+(Math.random()-.5)*2*w.spr*mv*(e.bot?1.6:1)*(e.blind>0?4:1);trace(e,a,w.dmg*(e.bot?(e.side==='D'?.9:.55):1),w.rng)}
- boom(EX(e)+Math.cos(e.a)*10,EY(e)+Math.sin(e.a)*10,2,'#ffd27a');if(e===G.me||dst(e.x,e.y,G.me.x,G.me.y)<200)sfx(WP[e.wp[e.sel]].a==='sg'?150:260,.08,'square',.03)}
+ boom(EX(e)+Math.cos(e.a)*10,EY(e)+Math.sin(e.a)*10,2,'#ffd27a');{const sf=WP[e.wp[e.sel]].a==='sg'?150:260;if(e===G.me||dst(e.x,e.y,G.me.x,G.me.y)<200)sfx(sf,.08,'square',.03);else if(window.NP&&NP.silent)NP.silent(sf,.08,'square',.03,e.x,e.y)}}
 function reload(e){const k=e.wp[e.sel];if(e.rl>0||e.ammo[k]>=WP[k].mag)return;e.rl=WP[k].rl;e.ammo[k]=WP[k].mag}
 function trace(e,a,dmg,rng){let x=EX(e)+Math.cos(a)*8,y=EY(e)+Math.sin(a)*8,lt=-1,hitx=x,hity=y;const cx=Math.cos(a)*3,cy=Math.sin(a)*3;
  for(let d=0;d<rng;d+=3){x+=cx;y+=cy;const tx=x/T|0,ty=y/T|0,t=tileAt(x,y);if(t===2||t===4){break}
@@ -754,7 +754,7 @@ function newRound(){setMap(uiSel.mapIdx||0,(uiSel.side==='D'&&uiSel.dsite>=0)?ui
  const OBJ=mode==='hostage'?HOST:SITES[mode==='bomb'&&Math.random()<.5?1:0],oyf=OBJ[1]>=OY*T?OY:0;G.asite=Math.random()<.5?0:1;at.forEach((e,i)=>{});for(const e of G.ents){if(e.side==='A'){e.site=G.asite;e.dl=Math.random()*400+120}}
  const sp=spots(mode);
  df.forEach((o,i)=>{const e=mkEnt('D',o,!(side==='D'&&i===0),sp[i][0]*T+8,sp[i][1]*T+8,side==='D'&&i===0?'YOU':undefined);e.post={x:e.x,y:e.y};e.role=i%2?'roam':'anchor';G.ents.push(e)});
- if(window.NP)NP.seat();G.me=G.ents.find(e=>!e.bot&&!e.rp);mkDrones();G.dc=side==='A'?0:-1;for(const e of G.ents){const L=G2[e.side];e.g2=e.rp?L[0]:e.bot?L[Math.random()*2|0]:(uiSel.g2[e.op.bid]||L[0]);e.g2n=2}
+ if(window.NP)NP.seat();G.me=G.ents.find(e=>!e.bot&&!e.rp);mkDrones();G.dc=side==='A'?0:-1;for(const e of G.ents){const L=G2[e.side];e.g2=e.rp?(e.rg2&&L.includes(e.rg2)?e.rg2:L[0]):e.bot?L[Math.random()*2|0]:(uiSel.g2[e.op.bid]||L[0]);e.g2n=2}
  // bot defenders reinforce + place gadgets
  const softs=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(map[y][x]===3&&(x===BX0||x===BX1||y===BY0||y===BY1||dst(x*T+8,y*T+8,OBJ[0],OBJ[1])<230))softs.push([x,y]);
  softs.sort((p,q)=>dst(p[0]*T+8,p[1]*T+8,OBJ[0],OBJ[1])-dst(q[0]*T+8,q[1]*T+8,OBJ[0],OBJ[1]));G.rq=[];
