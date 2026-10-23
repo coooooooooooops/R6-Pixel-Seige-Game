@@ -601,8 +601,11 @@ function hudExtra(me){
  if(hint){const hy=G.prog?VH2-76:VH2-62,hh=fitStr(hint,VW-24),tw=Math.ceil(Tw(hh))+10;g.fillStyle='rgba(8,10,14,.85)';g.fillRect(Math.round(VW/2-tw/2),hy,tw,12);T8(hh,VW/2,hy+2,'#ffd27a','center')}
  bigMap(me)}
 function r6xInit(){
- cv.addEventListener('mousedown',e=>{if(!G||G.guest)return;if(e.button===2){mpos(e);if(G.arm)G.arm=null;else if(G.me.alive&&(G.cv>=0||DRN()))pingView();else if(G.me.alive&&G.me.g2==='nitro'&&G.phase==='act')nitroBoom(G.me);return}
-  if(e.button===0&&G.arm){useArmed();mouse.down=false}})}
+ cv.addEventListener('mousedown',e=>{if(!G||G.guest)return;if(e.button===2){mpos(e);mouseR();return}
+  if(e.button===0)mouseLA()})}
+function mouseR(){if(G.arm)G.arm=null;else if(G.me.alive&&(G.cv>=0||DRN()))pingView();else if(G.me.alive&&G.me.g2==='nitro'&&G.phase==='act')nitroBoom(G.me)}
+function mouseLA(){if(G.arm){useArmed();mouse.down=false}}
+function mouseLB(){if((G.cv>=0||DRN())&&inExit()){exitView();mouse.down=false;return}mouse.down=true}
 
 // ---------- sprites ----------
 const SP={};
@@ -751,7 +754,7 @@ function newRound(){setMap(uiSel.mapIdx||0,(uiSel.side==='D'&&uiSel.dsite>=0)?ui
  const OBJ=mode==='hostage'?HOST:SITES[mode==='bomb'&&Math.random()<.5?1:0],oyf=OBJ[1]>=OY*T?OY:0;G.asite=Math.random()<.5?0:1;at.forEach((e,i)=>{});for(const e of G.ents){if(e.side==='A'){e.site=G.asite;e.dl=Math.random()*400+120}}
  const sp=spots(mode);
  df.forEach((o,i)=>{const e=mkEnt('D',o,!(side==='D'&&i===0),sp[i][0]*T+8,sp[i][1]*T+8,side==='D'&&i===0?'YOU':undefined);e.post={x:e.x,y:e.y};e.role=i%2?'roam':'anchor';G.ents.push(e)});
- G.me=G.ents.find(e=>!e.bot);mkDrones();G.dc=side==='A'?0:-1;for(const e of G.ents){const L=G2[e.side];e.g2=e.bot?L[Math.random()*2|0]:(uiSel.g2[e.op.bid]||L[0]);e.g2n=2}
+ if(window.NP)NP.seat();G.me=G.ents.find(e=>!e.bot&&!e.rp);mkDrones();G.dc=side==='A'?0:-1;for(const e of G.ents){const L=G2[e.side];e.g2=e.rp?L[0]:e.bot?L[Math.random()*2|0]:(uiSel.g2[e.op.bid]||L[0]);e.g2n=2}
  // bot defenders reinforce + place gadgets
  const softs=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(map[y][x]===3&&(x===BX0||x===BX1||y===BY0||y===BY1||dst(x*T+8,y*T+8,OBJ[0],OBJ[1])<230))softs.push([x,y]);
  softs.sort((p,q)=>dst(p[0]*T+8,p[1]*T+8,OBJ[0],OBJ[1])-dst(q[0]*T+8,q[1]*T+8,OBJ[0],OBJ[1]));G.rq=[];
@@ -824,6 +827,7 @@ function update(){const me=G.me;
    me.a=Math.atan2(wy-EY(me),wx-EX(me));leanUpd(me);if(mouse.down&&(G.phase==='act'||(G.phase==='prep'&&me.side==='D'))&&!me.nofire&&!me.lock)fire(me)}
   if(keys.e&&G.phase==='act'&&!DRN())interact(me)}
  else if(keys.enter)for(let i=0;i<3;i++){}
+ if(window.NP&&NP.role==='host')NP.runRemotes();
  for(const e of G.ents){if(!e.alive)continue;e.cd>0&&e.cd--;e.rl>0&&e.rl--;e.blind>0&&e.blind--;e.stun>0&&e.stun--;e.slow>0&&e.slow--;e.tag>0&&e.tag--;e.gcd>0&&e.gcd--;e.pulse>0&&e.pulse--;e.pcd>0&&e.pcd--;e.hurtT>0&&e.hurtT--;e.fl>0&&e.fl--;e.g2cd>0&&e.g2cd--;e.cwo>0&&e.cwo--;e.ph=(e.ph||0)+(e.mv>.1?.17:0);
   if(e.bot&&e.side==='A'&&botDroning(e)){e.mv=0}
   else if(e.bot&&(G.phase==='act'||(G.phase==='prep'&&e.side==='D'))&&e.stun<=0){if(G.phase==='prep'){e.mv=0;botPrep(e)}else{e.mv=0;botAI(e)}}
@@ -838,6 +842,21 @@ function update(){const me=G.me;
  updNades();if(window.R6A)R6A.tick();
  if(G.phase==='act')objectives();
  updFx()}
+function remoteTick(me){
+ tickX(me);
+ if(!me.alive||DRN()||G.cv>=0){me.ex=undefined;me.ey=undefined;me.ln=0}
+ if(G.cv>=0){const c=G.cams[G.cv];if(!c.alive||c.off>0||!me.alive)G.cv=-1;else{me.stun=Math.max(me.stun,3);if(mouse.down&&!inExit())tagNear(c,230,1)}}
+ if(G.dc>=0){const d=G.drones[G.dc];if(!me.alive||!d||!d.alive||G.phase==='end')G.dc=-1;else me.stun=Math.max(me.stun,3)}
+ if(me.alive){let dx=(keys.d?1:0)-(keys.a?1:0),dy=(keys.s?1:0)-(keys.w?1:0);const l=Math.hypot(dx,dy)||1;dx/=l;dy/=l;
+  const wx=mouse.x+cam.x,wy=mouse.y+cam.y;
+  if(DRN()){const dd=G.drones[G.dc];if(dd.ctrl===me)driveDrone(dd,dx,dy)}
+  else{if(G.phase==='act'||me.side==='D'){if(me.stam===undefined)me.stam=1;const mvg=!!(keys.w||keys.a||keys.s||keys.d),spr=!!(keys.shift&&mvg&&!me.lock&&me.rps!=='hang'&&me.stam>(me.tired?.3:0)&&!mouse.down&&!G.arm&&G.hostage.carrier!==me&&me.stun<=0&&me.slow<=0);
+   if(spr){me.stam=Math.max(0,me.stam-1/SPR_T);if(me.stam<=0)me.tired=1}else{me.stam=Math.min(1,me.stam+1/SPR_R);if(me.stam>=.3)me.tired=0}me.spr=spr;
+   const sp=PACE*me.op.sp*(spr?SPRINT:keys.alt?.5:1)*(me.slow>0?.4:1)*(me.stun>0?0:1)*(G.hostage.carrier===me?.8:1);if(!me.lock)moveEnt(me,dx*sp,dy*sp);me.mv=me.lock?0:Math.hypot(dx,dy)*(spr?1.25:keys.alt?.4:1)}
+   me.a=Math.atan2(wy-EY(me),wx-EX(me));leanUpd(me);if(mouse.down&&(G.phase==='act'||(G.phase==='prep'&&me.side==='D'))&&!me.nofire&&!me.lock)fire(me)}
+  if(keys.e&&G.phase==='act'&&!DRN())interact(me)}
+ else if(keys.enter)for(let i=0;i<3;i++){}
+}
 function botIdlePrep(e){if(e.faced)return;let bd=1e9,ba=e.a;const of=e.y>=OY*T?OY:0;for(const d of(of?DOORSU:DOORS)){const dx=d[0]*T+8,dy=(d[1]+of)*T+8,dd=dst(e.x,e.y,dx,dy);if(dd<bd&&dd>20){bd=dd;ba=Math.atan2(dy-e.y,dx-e.x)}}e.a=ba;e.faced=1}
 const dSee=d=>{const me=G.me;if(d.own.side===me.side)return true;const vp=G.cv>=0?G.cams[G.cv]:eyeOf(me),q=dst(vp.x,vp.y,d.x,d.y);return q<250&&los(vp.x,vp.y,d.x,d.y)&&!inSmoke(d.x,d.y)};
 const DRN=()=>G.me.side==='A'&&G.phase!=='end'&&G.dc>=0&&!!G.drones[G.dc]&&G.drones[G.dc].alive,CD=()=>G.drones[G.dc];
@@ -1004,13 +1023,15 @@ function hud(me){TBH=true;const al=G.ents.filter(e=>e.alive);const bar=(x,y,w,h,
 // ---------- input ----------
 addEventListener('keydown',e=>{const k=tk(e.key.toLowerCase());keys[k]=true;if(k==='escape'&&G&&G.bm&&!PAUSED){G.bm=0;return}if((k==='escape'||k==='p')&&G&&$('menu').style.display==='none'&&$('over').style.display==='none'){setPause(!PAUSED);return}if(!G||document.getElementById('menu').style.display!=='none')return;
  if(G.guest){if(window.NP)NP.key(k,e);return}
+ keyAct(k,e)});
+function keyAct(k,e){
  if(k==='c'&&G.me.side==='D'&&G.me.alive){const n=G.cams.length;let i=G.cv;do{i++}while(i<n&&!G.cams[i].alive);G.cv=i>=n?-1:i}if(k==='c'&&!e.repeat&&G.me.side==='A'&&G.me.alive&&G.phase!=='end'&&!G.arm)cycleDrone();if(k==='backspace'&&!e.repeat){e.preventDefault();exitView()}if(k==='t'&&!e.repeat&&!PAUSED&&G.me.alive)doPing(G.cv>=0?G.cams[G.cv]:DRN()?CD():G.me);if(k==='r')reload(G.me);if(k==='g')armG(G.me,'g2');if(k==='1'&&G.me.op.id!=='montagne')G.me.sel=0;if(k==='2')G.me.sel=1;if(k==='q')armG(G.me,'q');if(k===' '||k==='tab')e.preventDefault();
  if(k==='m'&&!e.repeat&&G.me&&!PAUSED){G.bm=G.bm?0:1;G.bmf=G.me.y>=OY*T?1:0}if(k==='tab'&&G.bm)G.bmf^=1;
- if(G.me.op.id==='montagne')G.me.sel=1});
+ if(G.me.op.id==='montagne')G.me.sel=1}
 addEventListener('keyup',e=>{keys[tk(e.key.toLowerCase())]=false});
 function mpos(e){const r=cv.getBoundingClientRect();mouse.x=(e.clientX-r.left)/r.width*VW;mouse.y=(e.clientY-r.top)/r.height*VH}
-cv.addEventListener('mousemove',mpos);cv.addEventListener('mousedown',e=>{mpos(e);if(e.button!==0)return;if(G&&G.guest){if(window.NP)NP.click();return}if(G&&(G.cv>=0||DRN())&&inExit()){exitView();mouse.down=false;return}mouse.down=true});
-addEventListener('mouseup',()=>mouse.down=false);cv.addEventListener('contextmenu',e=>e.preventDefault());
+cv.addEventListener('mousemove',mpos);cv.addEventListener('mousedown',e=>{mpos(e);if(e.button!==0)return;if(G&&G.guest){if(window.NP)NP.click(0);return}if(G)mouseLB()});
+addEventListener('mouseup',()=>mouse.down=false);cv.addEventListener('contextmenu',e=>{e.preventDefault();if(G&&G.guest){mpos(e);if(window.NP)NP.click(2)}});
 // ---------- menu ----------
 const $=id=>document.getElementById(id);
 const PRIMS={A:['ar','ar2','bar','smg','sg','asg','dmr','lmg','snp'],D:['smg','sg','asg','ar','ar2','bar','dmr','lmg','snp']},SECS=['pst','mp','rev'];

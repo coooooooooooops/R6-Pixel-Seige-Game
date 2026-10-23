@@ -202,7 +202,7 @@ function mk(){if(net){try{net.destroy()}catch(e){}}
  net.on('open',onOpen);net.on('close',onClose);net.on('message',onMsg);net.on('rtt',()=>paintSeats());
  net.on('status',s=>{if(role==='host')return;if(!gotHi&&p.dataset.v==='join'&&joining)setMsg(q('#jMsg'),'wait',s)});
  window.R6Online.net=net;return net}
-window.R6Online={net:null,get role(){return role},seats:()=>seatList(),get lobby(){return{mode:role==='host'?mode:lob.mode,map:role==='host'?map:lob.map}},onStart:null};
+window.R6Online={net:null,get role(){return role},get you(){return lob.you},seats:()=>seatList(),get lobby(){return{mode:role==='host'?mode:lob.mode,map:role==='host'?map:lob.map}},onStart:null};
 
 /* ---------- lobby painting ---------- */
 function paintModes(){const host=role==='host',cur=host?mode:lob.mode;q('#lModes').innerHTML=Object.keys(MD).map(k=>`<button class="mode ${cur===k?'on':''}" data-md="${k}" ${host?'':'disabled'}><b>${MD[k][0]}</b><small>${MD[k][1].split('. ')[0].replace(/\.$/,'')}.</small></button>`).join('')}

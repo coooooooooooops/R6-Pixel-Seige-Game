@@ -269,7 +269,7 @@ function tick(){
   if(--c.t<=0){if(!jammed(cx(c.tx),cx(c.ty)))brk(c.tx,c.ty);else boom(cx(c.tx),cx(c.ty),6,'#888');s.sel.splice(i,1)}}
  // ---- Maverick torch
  for(const e of G.ents){const q=e.tq;if(!q)continue;
-  const held=e===G.me?keys.q:true,h=e.alive?wallAhead(e,26):null;
+  const held=e===G.me?keys.q:(e.rpk?!!e.rpk.q:true),h=e.alive?wallAhead(e,26):null;
   if(!e.alive||!held||!h||h.tx!==q.tx||h.ty!==q.ty||e.gn<=0){e.tq=null;continue}
   const t=map[q.ty][q.tx],need=t===4?300:60;q.p++;e.slow=Math.max(e.slow,2);if(q.p%6===0){boom(h.x,h.y,2,'#9ad0ff');sfx(800+Math.random()*200,.03,'sawtooth',.02)}
   if(e===G.me)G.prog={t:'TORCHING',v:q.p/need,c:'#ff9a30'};
@@ -466,6 +466,6 @@ los=function(x1,y1,x2,y2){if(!_los0(x1,y1,x2,y2))return false;const s=st();if(!s
  return true};
 const _ex0=explode;
 explode=function(x,y,r,dmg,src){const s=st();if(s)for(const b of s.bar.slice())if(dst(b.x,b.y,x,y)<r+b.len/2){b.hp-=dmg*(b.k==='goyo'?2:1.2);if(b.hp<=0)barBreak(b)}return _ex0.call(this,x,y,r,dmg,src)};
-window.R6A={bhit,DEF,install,use,tick,draw,label:e=>{const d=DEF[e.op.gd];if(!d)return null;if(e.op.gd==='capitao')return (e.lq||0)%2?'SMOKE BOLT':'FIRE BOLT';if(e.op.gd==='zofia')return (e.lq||0)%2?'IMPACT':'CONC';return d.L},state:()=>st(),brk,rcBoom};
+window.R6A={st,bhit,DEF,install,use,tick,draw,label:e=>{const d=DEF[e.op.gd];if(!d)return null;if(e.op.gd==='capitao')return (e.lq||0)%2?'SMOKE BOLT':'FIRE BOLT';if(e.op.gd==='zofia')return (e.lq||0)%2?'IMPACT':'CONC';return d.L},state:()=>st(),brk,rcBoom};
 install();
 })();

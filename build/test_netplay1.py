@@ -48,6 +48,8 @@ with sync_playwright() as p:
     # break a soft wall on host -> tile arrives on guest
     t=H.evaluate("(()=>{for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(map[y][x]===3){setTile(x,y,1);return[x,y]}})()"); H.wait_for_timeout(700)
     ok('broken wall tile reaches guest',t and G.evaluate("map[%d][%d]"%(t[1],t[0]))==1,t)
+    # guest now owns an operator (5C-2); TAB only spectates once that operator is down
+    H.evaluate("hurt(G.ents.find(e=>e.rp),9999,0,null)"); H.wait_for_timeout(600)
     # tab cycles follow
     a=G.evaluate("G.ents.indexOf(G.me)"); G.keyboard.press('Tab'); G.wait_for_timeout(200); b2=G.evaluate("G.ents.indexOf(G.me)"); ok('TAB switches followed player',a!=b2,(a,b2))
     G.screenshot(path='/tmp/np_guest.png'); H.screenshot(path='/tmp/np_host.png')
