@@ -77,8 +77,9 @@ function install(){
  for(const sd of['A','D'])for(const o of OPS[sd]){const d=DEF[o.id];if(!d)continue;o.gd=o.id;o.gn=d.n;if(d.aim)ARMQ[o.id]=d.aim;else delete ARMQ[o.id];
   GDT[o.id]=d.d;o.t=String(o.t||'').split(' // in this build')[0]+' // in this build: '+d.d+'.'}
 }
-function brk(tx,ty){if(tx<=0||ty<=0||tx>=W-1||ty>=H-1)return false;const t=map[ty][tx];if(!WALL(t))return false;setTile(tx,ty,t===9?5:1);boom(tx*TS+8,ty*TS+8,14,'#ffb050');sfx(90,.3,'sawtooth',.07);return true}
+function brk(tx,ty){if(tx<=0||ty<=0||tx>=W-1||ty>=H-1)return false;const t=map[ty][tx];if(!WALL(t))return false;setTile(tx,ty,t===9?5:1);boom(tx*TS+8,ty*TS+8,14,'#ffb050');sfxAt(tx*TS+8,ty*TS+8,90,.3,'sawtooth',.07);return true}
 const cx=tx=>tx*TS+8;
+const sfxAt=(x,y,f,d,t,v)=>{window.__sfxPos={x,y};try{sfx(f,d,t,v)}finally{window.__sfxPos=null}}; // sound with an exact source position (netplay sends it to guests)
 function jammed(x,y){const s=st();return s&&(s.jam.some(j=>dst(j.x,j.y,x,y)<j.r)||s.cloud.some(c=>c.k==='zoto'&&dst(c.x,c.y,x,y)<c.r))}
 function elecAt(tx,ty){const s=st();return s&&s.elec.some(l=>l.tx===tx&&l.ty===ty)}
 function msg(e,m){if(e===G.me)G.msg=m}
@@ -93,7 +94,7 @@ function devs(){const s=st(),L=[];for(const c of G.cams)if(c.alive)L.push({k:'ca
 function killDev(d,dmg){const s=st();
  if(d.k==='cam'){d.o.hp-=dmg||999;if(d.o.hp<=0){d.o.alive=0;boom(d.x,d.y,10,'#8fa3bf')}else boom(d.x,d.y,4,'#7ed0ff')}
  else{const arr=d.k==='mine'?s.mine:d.k==='kona'?s.kona:d.k==='gate'?s.gate:d.k==='ban'?s.ban:d.k==='jam'?s.jam:d.k==='ads'?s.ads:d.k==='mag'?s.mag:d.k==='elec'?s.elec:G.traps,i=arr.indexOf(d.o);if(i>=0)arr.splice(i,1);boom(d.x,d.y,8,'#7ed0ff')}
- sfx(1200,.08,'sawtooth',.05)}
+ sfxAt(d.x,d.y,1200,.08,'sawtooth',.05)}
 function flyDrone(e){const d=G.dc>=0&&e===G.me?G.drones[G.dc]:null;return d&&d.alive&&d.fly&&d.ctrl===e?d:null}
 function putCam(e,o){const a0=e.a;let h=null,ang=a0;const tries=e===G.me?[0]:[0,.785,-.785,1.57,-1.57,2.36,-2.36,3.14];
  for(const d of tries){e.a=a0+d;const r=rayHit(e,d?44:70);if(WALL(r.t)){h=r;ang=e.a;break}}
@@ -103,7 +104,7 @@ function putCam(e,o){const a0=e.a;let h=null,ang=a0;const tries=e===G.me?[0]:[0,
 function nearestAtt(e,r,needLos){let b=null,bd=r;for(const o of G.ents)if(o.alive&&o.side!==e.side){const d=dst(e.x,e.y,o.x,o.y);if(d<bd&&(!needLos||los(e.x,e.y,o.x,o.y))){bd=d;b=o}}return b}
 
 function barAt(x,y,ign,r){const s=st();if(!s)return null;r=r||0;for(const b of s.bar){const px=x-b.x,py=y-b.y,al=px*b.dx+py*b.dy,nl=-px*b.dy+py*b.dx;if(Math.abs(al)<b.len/2+r&&Math.abs(nl)<3+r)return b}return null}
-function barBreak(b){const s=st();const i=s.bar.indexOf(b);if(i>=0)s.bar.splice(i,1);boom(b.x,b.y,12,'#8fa3bf');sfx(150,.2,'sawtooth',.06);if(b.k==='goyo'){s.fire.push({x:b.x,y:b.y,own:b.own,t:450,r:30});sfx(120,.4,'sawtooth',.07)}}
+function barBreak(b){const s=st();const i=s.bar.indexOf(b);if(i>=0)s.bar.splice(i,1);boom(b.x,b.y,12,'#8fa3bf');sfxAt(b.x,b.y,150,.2,'sawtooth',.06);if(b.k==='goyo'){s.fire.push({x:b.x,y:b.y,own:b.own,t:450,r:30});sfxAt(b.x,b.y,120,.4,'sawtooth',.07)}}
 function use(e,tx,ty){
  const d=DEF[e.op.gd];if(!d)return false;const s=st();if(!s)return true;const k=e.op.gd;
  if(k==='hibana'){const h=wallAhead(e,150);
@@ -252,14 +253,14 @@ function tick(){
   if(p.t>0&&--p.t===0){if(jammed(p.x,p.y)){boom(p.x,p.y,6,'#888');s.pel.splice(i,1);continue}p.go=1}}
  const goTiles={};for(const p of s.pel)if(p.go){const k=p.tx+','+p.ty;(goTiles[k]=goTiles[k]||[]).push(p)}
  for(const k in goTiles){const ps=goTiles[k],t=map[ps[0].ty][ps[0].tx],need=t===4?2:1;
-  if(ps.length>=need)brk(ps[0].tx,ps[0].ty);else{boom(ps[0].x,ps[0].y,8,'#ff9a30');sfx(200,.1,'square',.04)}
+  if(ps.length>=need)brk(ps[0].tx,ps[0].ty);else{boom(ps[0].x,ps[0].y,8,'#ff9a30');sfxAt(ps[0].x,ps[0].y,200,.1,'square',.04)}
   s.pel=s.pel.filter(p=>!ps.includes(p))}
  // ---- cluster charges
  for(let i=s.clu.length-1;i>=0;i--){const c=s.clu[i];
   if(!WALL(map[c.ty][c.tx])&&!c.run){s.clu.splice(i,1);continue}
   if(!c.run){if(elecAt(c.tx,c.ty)){boom(cx(c.tx),cx(c.ty),8,'#7ed0ff');s.clu.splice(i,1);continue}
    if(c.t>0&&--c.t===0){if(jammed(cx(c.tx),cx(c.ty))){boom(cx(c.tx),cx(c.ty),6,'#888');s.clu.splice(i,1);continue}
-    c.run=150;c.ox=cx(c.tx)+Math.cos(c.a)*10;c.oy=cx(c.ty)+Math.sin(c.a)*10;if(map[c.ty][c.tx]===3||map[c.ty][c.tx]===9)brk(c.tx,c.ty);sfx(120,.3,'sawtooth',.07)}continue}
+    c.run=150;c.ox=cx(c.tx)+Math.cos(c.a)*10;c.oy=cx(c.ty)+Math.sin(c.a)*10;if(map[c.ty][c.tx]===3||map[c.ty][c.tx]===9)brk(c.tx,c.ty);sfxAt(cx(c.tx),cx(c.ty),120,.3,'sawtooth',.07)}continue}
   c.run--;if(c.run%15===0){const n=c.run/15|0;for(let j=-1;j<=2;j++){const a=c.a+j*.22-.11,r=18+(10-n)*5,x=c.ox+Math.cos(a)*r,y=c.oy+Math.sin(a)*r;
     if(solid(tileAt(x,y))&&!WALL(tileAt(x,y)))continue;
     G.ring.push({x,y,r:2,c:'#ffb050'});boom(x,y,6,'#ff9a30');for(const o of G.ents)if(o.alive&&o.side==='D'&&dst(o.x,o.y,x,y)<20)hurt(o,22,undefined,c.own)}}
@@ -271,23 +272,23 @@ function tick(){
  for(const e of G.ents){const q=e.tq;if(!q)continue;
   const held=e===G.me?keys.q:(e.rpk?!!e.rpk.q:true),h=e.alive?wallAhead(e,26):null;
   if(!e.alive||!held||!h||h.tx!==q.tx||h.ty!==q.ty||e.gn<=0){e.tq=null;continue}
-  const t=map[q.ty][q.tx],need=t===4?300:60;q.p++;e.slow=Math.max(e.slow,2);if(q.p%6===0){boom(h.x,h.y,2,'#9ad0ff');sfx(800+Math.random()*200,.03,'sawtooth',.02)}
+  const t=map[q.ty][q.tx],need=t===4?300:60;q.p++;e.slow=Math.max(e.slow,2);if(q.p%6===0){boom(h.x,h.y,2,'#9ad0ff');sfxAt(h.x,h.y,800+Math.random()*200,.03,'sawtooth',.02)}
   if(e===G.me)G.prog={t:'TORCHING',v:q.p/need,c:'#ff9a30'};
   if(q.p>=need){brk(q.tx,q.ty);e.gn--;e.tq=null}}
  // ---- BU-GI
  for(let i=s.bugi.length-1;i>=0;i--){const b=s.bugi[i];b.t--;
   for(const o of G.ents)if(o.alive&&o.side==='D'&&dst(o.x,o.y,b.x,b.y)<140&&los(o.x,o.y,b.x,b.y))b.hp-=.25;
-  if(b.hp<=0){boom(b.x,b.y,14,'#ffb050');sfx(120,.2,'sawtooth',.06);s.bugi.splice(i,1);continue}
+  if(b.hp<=0){boom(b.x,b.y,14,'#ffb050');sfxAt(b.x,b.y,120,.2,'sawtooth',.06);s.bugi.splice(i,1);continue}
   const nx=b.x+Math.cos(b.a)*.9,ny=b.y+Math.sin(b.a)*.9,t=tileAt(nx,ny);
   if(t===9){brk(nx/TS|0,ny/TS|0)}
   else if(!solid(t)){b.x=nx;b.y=ny;b.ph+=.3}
-  const n0=G.traps.length;G.traps=G.traps.filter(tr=>!(tr.own&&tr.own.side==='D'||tr.k==='wire'||tr.k==='kap'||tr.k==='mat')||dst(tr.x,tr.y,b.x,b.y)>14);if(G.traps.length<n0){boom(b.x,b.y,8,'#ffb050');sfx(500,.1,'square',.05)}
+  const n0=G.traps.length;G.traps=G.traps.filter(tr=>!(tr.own&&tr.own.side==='D'||tr.k==='wire'||tr.k==='kap'||tr.k==='mat')||dst(tr.x,tr.y,b.x,b.y)>14);if(G.traps.length<n0){boom(b.x,b.y,8,'#ffb050');sfxAt(b.x,b.y,500,.1,'square',.05)}
   const j0=s.jam.length;s.jam=s.jam.filter(j=>dst(j.x,j.y,b.x,b.y)>12);const a0=s.ads.length;s.ads=s.ads.filter(j=>dst(j.x,j.y,b.x,b.y)>12);s.mag=s.mag.filter(j=>dst(j.x,j.y,b.x,b.y)>12);if(s.jam.length<j0||s.ads.length<a0)boom(b.x,b.y,8,'#ffb050');
   if(b.t<=0)s.bugi.splice(i,1)}
  // ---- Flores RC car
  for(let i=s.rc.length-1;i>=0;i--){const c=s.rc[i];if(!c.alive){s.rc.splice(i,1);continue}
   if(!c.own.alive||--c.t<=0){rcBoom(c);continue}
-  if(jammed(c.x,c.y)){c.alive=0;c.own.rc=null;boom(c.x,c.y,10,'#7ed0ff');sfx(300,.2,'sawtooth',.05);continue}
+  if(jammed(c.x,c.y)){c.alive=0;c.own.rc=null;boom(c.x,c.y,10,'#7ed0ff');sfxAt(c.x,c.y,300,.2,'sawtooth',.05);continue}
   if(c.own===G.me){const ta=Math.atan2(mouse.y+cam.y-c.y,mouse.x+cam.x-c.x);c.a=turn(c.a,ta,.12)}
   const nx=c.x+Math.cos(c.a)*1.6,ny=c.y+Math.sin(c.a)*1.6;
   if(solid(tileAt(nx,ny))){rcBoom(c);continue}c.x=nx;c.y=ny;
@@ -295,13 +296,13 @@ function tick(){
  // ---- electrified walls (Bandit / Kaid)
  for(let i=s.elec.length-1;i>=0;i--){const l=s.elec[i];if(map[l.ty][l.tx]!==4){s.elec.splice(i,1);continue}
   const x=cx(l.tx),y=cx(l.ty);
-  for(let j=G.charges.length-1;j>=0&&l.own.side==='D';j--)if(G.charges[j].tx===l.tx&&G.charges[j].ty===l.ty){G.charges.splice(j,1);boom(x,y,10,'#7ed0ff');sfx(1500,.15,'sawtooth',.06)}
-  if(G.t%20===0)for(const a of G.ents)if(a.alive&&a.side!==l.own.side&&dst(a.x,a.y,x,y)<19){hurt(a,10,undefined,l.own);a.slow=Math.max(a.slow,40);boom(a.x,a.y,3,'#7ed0ff');sfx(1700,.05,'sawtooth',.04)}}
+  for(let j=G.charges.length-1;j>=0&&l.own.side==='D';j--)if(G.charges[j].tx===l.tx&&G.charges[j].ty===l.ty){G.charges.splice(j,1);boom(x,y,10,'#7ed0ff');sfxAt(x,y,1500,.15,'sawtooth',.06)}
+  if(G.t%20===0)for(const a of G.ents)if(a.alive&&a.side!==l.own.side&&dst(a.x,a.y,x,y)<19){hurt(a,10,undefined,l.own);a.slow=Math.max(a.slow,40);boom(a.x,a.y,3,'#7ed0ff');sfxAt(a.x,a.y,1700,.05,'sawtooth',.04)}}
  // ---- ADS and Mag-NET
  for(let i=G.nades.length-1;i>=0;i--){const n=G.nades[i];if(!n.own||n.mag)continue;
-  for(let j=s.ads.length-1;j>=0;j--){const a=s.ads[j];if(a.own.side!==n.own.side&&dst(a.x,a.y,n.x,n.y)<a.r&&los(a.x,a.y,n.x,n.y)){G.nades.splice(i,1);G.ring.push({x:n.x,y:n.y,r:2,c:'#7ed0ff'});boom(n.x,n.y,10,'#7ed0ff');sfx(1000,.1,'sawtooth',.05);if(--a.n<=0)s.ads.splice(j,1);n.dead=1;break}}
+  for(let j=s.ads.length-1;j>=0;j--){const a=s.ads[j];if(a.own.side!==n.own.side&&dst(a.x,a.y,n.x,n.y)<a.r&&los(a.x,a.y,n.x,n.y)){G.nades.splice(i,1);G.ring.push({x:n.x,y:n.y,r:2,c:'#7ed0ff'});boom(n.x,n.y,10,'#7ed0ff');sfxAt(n.x,n.y,1000,.1,'sawtooth',.05);if(--a.n<=0)s.ads.splice(j,1);n.dead=1;break}}
   if(n.dead)continue;
-  for(let j=s.mag.length-1;j>=0;j--){const m=s.mag[j];if(m.own.side!==n.own.side&&dst(m.x,m.y,n.x,n.y)<m.r&&los(m.x,m.y,n.x,n.y)){n.x=m.x;n.y=m.y;n.vx=n.vy=0;n.air=0;n.t=Math.max(n.t,60);n.own=m.own;n.mag=1;G.ring.push({x:m.x,y:m.y,r:2,c:'#c46aff'});sfx(300,.2,'sine',.05);s.mag.splice(j,1);break}}}
+  for(let j=s.mag.length-1;j>=0;j--){const m=s.mag[j];if(m.own.side!==n.own.side&&dst(m.x,m.y,n.x,n.y)<m.r&&los(m.x,m.y,n.x,n.y)){n.x=m.x;n.y=m.y;n.vx=n.vy=0;n.air=0;n.t=Math.max(n.t,60);n.own=m.own;n.mag=1;G.ring.push({x:m.x,y:m.y,r:2,c:'#c46aff'});sfxAt(m.x,m.y,300,.2,'sine',.05);s.mag.splice(j,1);break}}}
 
  // ===== STAGE 2 tick: intel + drones =====
  for(const e of G.ents){e.mvd=dst(e.x,e.y,e.lx===undefined?e.x:e.lx,e.ly===undefined?e.y:e.ly)>.25;e.lx=e.x;e.ly=e.y;
@@ -324,22 +325,22 @@ function tick(){
   if(e.sol>0){const own=new Set();for(const arr of[s.pel,s.sel,s.clu,s.bugi,s.rc,s.hive,s.arg,s.mark,s.trk])for(const d of arr)if(d.own)own.add(d.own);for(const o of G.ents)if(o.tq||o.rc)own.add(o);
    for(const o of own)if(o.alive&&o.side!==e.side&&dst(e.x,e.y,o.x,o.y)<260)tg(o,15)}}
  for(const c of G.cams){if(!c.alive||c.off>0)continue;
-  if(c.evil){c.bl=(c.bl||0)-1;if(c.bl<=0){const t=G.ents.find(o=>o.alive&&o.side==='A'&&dst(c.x,c.y,o.x,o.y)<130&&los(c.x,c.y,o.x,o.y));if(t){t.blind=Math.max(t.blind,50);c.bl=100;G.ring.push({x:t.x,y:t.y,r:2,c:'#ff4a4a'});sfx(1400,.1,'sawtooth',.04)}}}
-  if(c.echo&&G.cv>=0&&G.cams[G.cv]===c&&mouse.down&&c.cd<=0){c.cd=480;G.ring.push({x:c.x,y:c.y,r:2,c:'#6ad0ff'});sfx(220,.4,'sawtooth',.07);
+  if(c.evil){c.bl=(c.bl||0)-1;if(c.bl<=0){const t=G.ents.find(o=>o.alive&&o.side==='A'&&dst(c.x,c.y,o.x,o.y)<130&&los(c.x,c.y,o.x,o.y));if(t){t.blind=Math.max(t.blind,50);c.bl=100;G.ring.push({x:t.x,y:t.y,r:2,c:'#ff4a4a'});sfxAt(t.x,t.y,1400,.1,'sawtooth',.04)}}}
+  if(c.echo&&G.cv>=0&&G.cams[G.cv]===c&&mouse.down&&c.cd<=0){c.cd=480;G.ring.push({x:c.x,y:c.y,r:2,c:'#6ad0ff'});sfxAt(c.x,c.y,220,.4,'sawtooth',.07);
    for(const o of G.ents)if(o.alive&&o.side==='A'&&dst(c.x,c.y,o.x,o.y)<85){o.stun=Math.max(o.stun,150);tg(o,120)}}}
 
  // ===== STAGE 3 tick: traps + area denial =====
  for(let i=s.mine.length-1;i>=0;i--){const m=s.mine[i];
-  if(m.fuse>0){if(--m.fuse===0){boom(m.x,m.y,22,'#ff6a3a');G.ring.push({x:m.x,y:m.y,r:2,c:'#ff6a3a'});sfx(80,.4,'sawtooth',.08);
+  if(m.fuse>0){if(--m.fuse===0){boom(m.x,m.y,22,'#ff6a3a');G.ring.push({x:m.x,y:m.y,r:2,c:'#ff6a3a'});sfxAt(m.x,m.y,80,.4,'sawtooth',.08);
     for(const o of G.ents)if(o.alive&&o.side!==m.own.side&&dst(o.x,o.y,m.x,m.y)<40&&los(m.x,m.y,o.x,o.y))hurt(o,65,undefined,m.own);s.mine.splice(i,1)}continue}
   const v=G.ents.find(o=>o.alive&&o.side!==m.own.side&&dst(o.x,o.y,m.x,m.y)<m.r);if(!v)continue;
-  if(m.k==='thorn'){m.fuse=40;sfx(500,.1,'square',.05);continue}
+  if(m.k==='thorn'){m.fuse=40;sfxAt(m.x,m.y,500,.1,'square',.05);continue}
   s.mine.splice(i,1);boom(m.x,m.y,8,'#8fd06a');
-  if(m.k==='gu'){v.psn=240;v.psnSrc=m.own;v.slow=Math.max(v.slow,200);tg(v,600);hurt(v,5,undefined,m.own);sfx(300,.2,'sine',.05)}
-  else if(m.k==='den'){hurt(v,30,undefined,m.own);v.slow=Math.max(v.slow,120);sfx(200,.2,'square',.05)}
-  else if(m.k==='ela'){G.ring.push({x:m.x,y:m.y,r:2,c:'#6ad0ff'});sfx(150,.3,'sine',.07);for(const o of G.ents)if(o.alive&&o.side!==m.own.side&&dst(o.x,o.y,m.x,m.y)<45){o.slow=Math.max(o.slow,150);o.blind=Math.max(o.blind,50);o.stun=Math.max(o.stun,40)}}
-  else if(m.k==='dread'){s.cloud.push({k:'dread',x:m.x,y:m.y,own:m.own,t:420,r:46});sfx(120,.4,'sawtooth',.06)}
-  else if(m.k==='zoto'){s.cloud.push({k:'zoto',x:m.x,y:m.y,own:m.own,t:600,r:52});sfx(700,.3,'sine',.06)}}
+  if(m.k==='gu'){v.psn=240;v.psnSrc=m.own;v.slow=Math.max(v.slow,200);tg(v,600);hurt(v,5,undefined,m.own);sfxAt(m.x,m.y,300,.2,'sine',.05)}
+  else if(m.k==='den'){hurt(v,30,undefined,m.own);v.slow=Math.max(v.slow,120);sfxAt(m.x,m.y,200,.2,'square',.05)}
+  else if(m.k==='ela'){G.ring.push({x:m.x,y:m.y,r:2,c:'#6ad0ff'});sfxAt(m.x,m.y,150,.3,'sine',.07);for(const o of G.ents)if(o.alive&&o.side!==m.own.side&&dst(o.x,o.y,m.x,m.y)<45){o.slow=Math.max(o.slow,150);o.blind=Math.max(o.blind,50);o.stun=Math.max(o.stun,40)}}
+  else if(m.k==='dread'){s.cloud.push({k:'dread',x:m.x,y:m.y,own:m.own,t:420,r:46});sfxAt(m.x,m.y,120,.4,'sawtooth',.06)}
+  else if(m.k==='zoto'){s.cloud.push({k:'zoto',x:m.x,y:m.y,own:m.own,t:600,r:52});sfxAt(m.x,m.y,700,.3,'sine',.06)}}
  for(const e of G.ents)if(e.alive&&e.psn>0){e.psn--;if(e.psn%20===0)hurt(e,4,undefined,e.psnSrc||null)}
  for(let i=s.cloud.length-1;i>=0;i--){const c=s.cloud[i];if(--c.t<=0){s.cloud.splice(i,1);continue}
   for(const o of G.ents)if(o.alive&&o.side!==c.own.side&&dst(o.x,o.y,c.x,c.y)<c.r){if(c.k==='dread'){o.blind=Math.max(o.blind,30);o.slow=Math.max(o.slow,30);tg(o,15)}else o.slow=Math.max(o.slow,45)}}
@@ -353,7 +354,7 @@ function tick(){
  for(let i=s.jab.length-1;i>=0;i--){const j=s.jab[i];if(--j.t<=0){s.jab.splice(i,1);continue}
   const v=G.ents.find(o=>o.alive&&o.side!==j.own.side&&dst(o.x,o.y,j.x,j.y)<j.r);if(!v)continue;
   const a=Math.atan2(v.y-j.y,v.x-j.x);for(let d=0;d<30;d+=2){const nx=v.x+Math.cos(a)*2,ny=v.y+Math.sin(a)*2;if(solid(tileAt(nx,ny)))break;v.x=nx;v.y=ny}
-  v.stun=Math.max(v.stun,90);boom(j.x,j.y,12,'#6ad0ff');G.ring.push({x:j.x,y:j.y,r:2,c:'#6ad0ff'});sfx(180,.3,'sawtooth',.07);s.jab.splice(i,1)}
+  v.stun=Math.max(v.stun,90);boom(j.x,j.y,12,'#6ad0ff');G.ring.push({x:j.x,y:j.y,r:2,c:'#6ad0ff'});sfxAt(j.x,j.y,180,.3,'sawtooth',.07);s.jab.splice(i,1)}
  // ===== STAGE 4 part 1 tick =====
  for(const sm of G.smokes)if(sm.noGas)sm.gas=false;
  for(const e of G.ents){if(!e.alive){e.surge=0;continue}
@@ -365,32 +366,32 @@ function tick(){
    else if(G.ents.some(o=>o.alive&&o.side!==b.own.side&&dst(o.x,o.y,b.x,b.y)<7))done=true}
   if(--b.t<=0)done=true;
   if(!done)continue;s.shell.splice(i,1);
-  if(b.k==='cfire'){s.fire.push({x:b.x,y:b.y,own:b.own,t:600,r:30});sfx(150,.4,'sawtooth',.06)}
-  else if(b.k==='csmoke'){G.smokes.push({x:b.x,y:b.y,t:520,r:32,noGas:1});sfx(200,.4,'sine',.04)}
-  else if(b.k==='zconc'){G.ring.push({x:b.x,y:b.y,r:2,c:'#6ad0ff'});boom(b.x,b.y,10,'#6ad0ff');sfx(160,.3,'sine',.07);
+  if(b.k==='cfire'){s.fire.push({x:b.x,y:b.y,own:b.own,t:600,r:30});sfxAt(b.x,b.y,150,.4,'sawtooth',.06)}
+  else if(b.k==='csmoke'){G.smokes.push({x:b.x,y:b.y,t:520,r:32,noGas:1});sfxAt(b.x,b.y,200,.4,'sine',.04)}
+  else if(b.k==='zconc'){G.ring.push({x:b.x,y:b.y,r:2,c:'#6ad0ff'});boom(b.x,b.y,10,'#6ad0ff');sfxAt(b.x,b.y,160,.3,'sine',.07);
    for(const o of G.ents)if(o.alive&&o.side!==b.own.side&&dst(o.x,o.y,b.x,b.y)<55&&los(b.x,b.y,o.x,o.y)){o.stun=Math.max(o.stun,50);o.slow=Math.max(o.slow,150);o.blind=Math.max(o.blind,40);tg(o,40)}}
   else explode(b.x,b.y,32,45,b.own)}
  for(let i=s.fire.length-1;i>=0;i--){const f=s.fire[i];if(--f.t<=0){s.fire.splice(i,1);continue}
   if(f.t%30===0)for(const o of G.ents)if(o.alive&&o.side!==f.own.side&&dst(o.x,o.y,f.x,f.y)<f.r){hurt(o,6,undefined,f.own);o.slow=Math.max(o.slow,30)}}
  for(let i=s.can.length-1;i>=0;i--){const c=s.can[i];stepNade(c,true);
   if(c.bur===0){if(--c.t<=0){c.bur=1;c.nx=0}}
-  if(c.bur>=1){if(c.nx--<=0){c.nx=8;c.bur++;G.ring.push({x:c.x,y:c.y,r:2,c:'#ffffff'});boom(c.x,c.y,8,'#ffffff');sfx(1300,.1,'sine',.05);
+  if(c.bur>=1){if(c.nx--<=0){c.nx=8;c.bur++;G.ring.push({x:c.x,y:c.y,r:2,c:'#ffffff'});boom(c.x,c.y,8,'#ffffff');sfxAt(c.x,c.y,1300,.1,'sine',.05);
     for(const o of G.ents)if(o.alive&&o.side!==c.own.side&&dst(o.x,o.y,c.x,c.y)<105&&los(c.x,c.y,o.x,o.y))o.blind=Math.max(o.blind,110)}
    if(c.bur>4)s.can.splice(i,1)}}
  for(const k of s.kona){if(k.cd>0)k.cd--;if(k.cd>0||k.n<=0)continue;
   const o=G.ents.find(o=>o.alive&&o.side===k.own.side&&o.hp<o.mhp&&dst(o.x,o.y,k.x,k.y)<k.r);
-  if(o){o.hp=Math.min(o.mhp,o.hp+25);k.n--;k.cd=60;G.ring.push({x:o.x,y:o.y,r:2,c:'#6aff9a'});sfx(800,.15,'sine',.05)}}
+  if(o){o.hp=Math.min(o.mhp,o.hp+25);k.n--;k.cd=60;G.ring.push({x:o.x,y:o.y,r:2,c:'#6aff9a'});sfxAt(o.x,o.y,800,.15,'sine',.05)}}
  for(let i=s.kona.length-1;i>=0;i--)if(s.kona[i].n<=0&&s.kona[i].cd<=0)s.kona.splice(i,1);
  for(const g of s.gate)for(const o of G.ents){if(!o.alive||o.side===g.own.side)continue;
   const px=o.x-g.x,py=o.y-g.y,u=Math.max(-11,Math.min(11,px*g.dx+py*g.dy)),q=Math.hypot(px-g.dx*u,py-g.dy*u);
-  if(q<6){o.slow=Math.max(o.slow,45);tg(o,25);if(G.t%25===0){hurt(o,8,undefined,g.own);boom(o.x,o.y,3,'#ff4a4a');sfx(1400,.05,'sawtooth',.04)}}}
+  if(q<6){o.slow=Math.max(o.slow,45);tg(o,25);if(G.t%25===0){hurt(o,8,undefined,g.own);boom(o.x,o.y,3,'#ff4a4a');sfxAt(o.x,o.y,1400,.05,'sawtooth',.04)}}}
  for(let i=s.bar.length-1;i>=0;i--){const b=s.bar[i];if(b.t>0&&--b.t===0){s.bar.splice(i,1);boom(b.x,b.y,4,'#8fa3bf')}}
 
  for(let i=s.scr.length-1;i>=0;i--)if(--s.scr[i].t<=0)s.scr.splice(i,1);
  for(let i=s.tur.length-1;i>=0;i--){const t=s.tur[i];if(t.hp<=0){boom(t.x,t.y,10,'#8fa3bf');s.tur.splice(i,1);continue}
   if(t.cd>0){t.cd--;continue}
   let b=null,bd=170;for(const o of G.ents)if(o.alive&&o.side!==t.own.side){const d=dst(o.x,o.y,t.x,t.y);if(d<bd&&los(t.x,t.y,o.x,o.y)){bd=d;b=o}}
-  if(b){t.a=Math.atan2(b.y-t.y,b.x-t.x);t.cd=7;if(Math.random()<.65)hurt(b,5,t.a,t.own);G.tr.push({x1:t.x,y1:t.y,x2:b.x,y2:b.y,t:3,pl:false});sfx(240,.04,'square',.02)}}
+  if(b){t.a=Math.atan2(b.y-t.y,b.x-t.x);t.cd=7;if(Math.random()<.65)hurt(b,5,t.a,t.own);G.tr.push({x1:t.x,y1:t.y,x2:b.x,y2:b.y,t:3,pl:false});sfxAt(t.x,t.y,240,.04,'square',.02)}}
  // ---- bots set up their defender gadgets during prep
  if(G.phase==='prep'&&G.t%45===0)for(const e of G.ents){if(!e.bot||!e.alive||e.side!=='D'||e.abDone||!DEF[e.op.gd])continue;
   const k=e.op.gd;
@@ -445,7 +446,7 @@ function draw(g,me){const s=st();if(!s)return;
 function bhit(x,y,dmg,src){const s=st();if(!s||!src)return false;
  {const b=barAt(x,y,null,0);if(b){b.hp-=dmg*(b.k==='goyo'?1.5:.25);boom(x,y,2,'#cfd6de');if(b.hp<=0)barBreak(b);return true}}
  if(src.side==='A'){
-  for(let i=s.holo.length-1;i>=0;i--){const h=s.holo[i];if(dst(h.x,h.y,x,y)<7){tg(src,600);G.ring.push({x:src.x,y:src.y,r:2,c:'#ffd24a'});boom(h.x,h.y,8,'#ffd24a');s.holo.splice(i,1);sfx(900,.1,'sine',.05);return true}}
+  for(let i=s.holo.length-1;i>=0;i--){const h=s.holo[i];if(dst(h.x,h.y,x,y)<7){tg(src,600);G.ring.push({x:src.x,y:src.y,r:2,c:'#ffd24a'});boom(h.x,h.y,8,'#ffd24a');s.holo.splice(i,1);sfxAt(h.x,h.y,900,.1,'sine',.05);return true}}
   for(const arr of[s.ban,s.jam,s.ads,s.mag,s.kona,s.gate,s.tur])for(let i=arr.length-1;i>=0;i--){const d=arr[i];if(dst(d.x,d.y,x,y)<6){d.hp=(d.hp===undefined?25:d.hp)-dmg;boom(d.x,d.y,3,'#8fa3bf');if(d.hp<=0){arr.splice(i,1);boom(d.x,d.y,10,'#8fa3bf')}return true}}}
  if(src.side==='A')for(const r of s.rov)if(dst(r.x,r.y,x,y)<6){r.hp-=dmg;boom(r.x,r.y,3,'#8fa3bf');return true}
  return false}

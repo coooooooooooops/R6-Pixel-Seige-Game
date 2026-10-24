@@ -25,17 +25,17 @@ function applyLayer(l){const flat=new Uint8Array(W*H);unrle(l.m,flat);for(let y=
   for(let i=0;i<SITES.length&&i<l.S.length;i++){SITES[i][0]=l.S[i][0];SITES[i][1]=l.S[i][1]}HOST[0]=l.H[0];HOST[1]=l.H[1];fcache={};wh.fill(100);for(let y=0;y<H;y++)for(let x=0;x<W;x++)drawTile(x,y);mver++}
 /* ---- sound (5C-5a): sfx() has no position, so the functions that make noise are wrapped to remember WHERE the noise comes from; host queues
    [freq,dur,type,vol,x,y] and the guest plays it attenuated by distance to the entity it is playing/following ---- */
-let SRC=null,sndQ=[];
+let SRC=null,sndQ=[],LAST=null; // LAST = where the most recent positioned event of THIS tick happened (gadget-tick sounds have no source of their own)
 function wrapFn(n,pf){const o=window[n];if(typeof o!=='function'||o.__np)return;
-  const w=function(){const prev=SRC;try{SRC=pf?pf.apply(null,arguments):null}catch(e){SRC=null}try{return o.apply(this,arguments)}finally{SRC=prev}};w.__np=1;window[n]=w}
+  const w=function(){const prev=SRC;try{SRC=pf?pf.apply(null,arguments):null;if(SRC&&!SRC.g)LAST={x:SRC.x,y:SRC.y,t:tickN}}catch(e){SRC=null}try{return o.apply(this,arguments)}finally{SRC=prev}};w.__np=1;window[n]=w}
 const E=e=>e&&typeof e.x==='number'?{x:e.x,y:e.y}:null,XY=(x,y)=>({x,y}),TT=(x,y)=>({x:x*T+8,y:y*T+8}),GL=()=>({g:1});
 for(const[n,pf]of[['fire',E],['trace',E],['hurt',E],['throwNade',E],['gadget',E],['gadget2',E],['gadgetOld',E],['rapMove',E],['stairs',E],['navTo',E],['tickX',E],
    ['explode',XY],['wallDmg',TT],['breakBarr',TT],['putBarr',TT],['stepNade',E],['dronePower',E],['tagE',E],['startAct',GL],['objectives',GL],['rqOne',GL]])wrapFn(n,pf);
 if(window.R6A){for(const n of['use','barBreak']){const o=R6A[n];if(typeof o==='function'&&!o.__np){R6A[n]=function(a){const prev=SRC;SRC=a&&typeof a.x==='number'?{x:a.x,y:a.y}:prev;try{return o.apply(this,arguments)}finally{SRC=prev}};R6A[n].__np=1}}}
-{const _sfx=window.sfx;if(!_sfx.__np){const w=function(f,d,t,v){try{if(NP.on&&NP.role==='host'&&SRC&&sndQ.length<24)sndQ.push([f|0,+(+d).toFixed(2),t||'square',+(+(v||.04)).toFixed(3),SRC.g?null:Math.round(SRC.x),SRC.g?null:Math.round(SRC.y)])}catch(e){}return _sfx.apply(this,arguments)};w.__np=1;window.sfx=w}}
+{const _sfx=window.sfx;if(!_sfx.__np){const w=function(f,d,t,v){try{const sr=window.__sfxPos||SRC||(LAST&&LAST.t===tickN?LAST:null);if(NP.on&&NP.role==='host'&&sr&&sndQ.length<24)sndQ.push([f|0,+(+d).toFixed(2),t||'square',+(+(v||.04)).toFixed(3),sr.g?null:Math.round(sr.x),sr.g?null:Math.round(sr.y)])}catch(e){}return _sfx.apply(this,arguments)};w.__np=1;window.sfx=w}}
 NP.silent=function(f,d,t,v,x,y){if(NP.on&&NP.role==='host'&&sndQ.length<24)sndQ.push([f|0,d,t,v,Math.round(x),Math.round(y)])}; // sound the host does not play (too far from the host's own operator) but a guest may hear
 let boomQ=[];
-{const _b=window.boom;if(typeof _b==='function'&&!_b.__np){const w=function(x,y,n,c){try{if(NP.on&&NP.role==='host'&&boomQ.length<10)boomQ.push([Math.round(x),Math.round(y),n|0,c||null])}catch(e){}return _b.apply(this,arguments)};w.__np=1;window.boom=w}}
+{const _b=window.boom;if(typeof _b==='function'&&!_b.__np){const w=function(x,y,n,c){try{if(typeof x==='number')LAST={x,y,t:tickN};if(NP.on&&NP.role==='host'&&boomQ.length<10)boomQ.push([Math.round(x),Math.round(y),n|0,c||null])}catch(e){}return _b.apply(this,arguments)};w.__np=1;window.boom=w}}
 function playBooms(list){if(!G||!G.guest||!list)return;const me=G.me;for(const a of list){const prev=G.shake||0;try{boom(a[0],a[1],a[2],a[3])}catch(e){}
   if(a[2]>=12){const d=me?Math.hypot(a[0]-me.x,a[1]-me.y):0;G.shake=Math.max(prev,a[2]/3*Math.max(0,1-d/500))}else G.shake=prev}}
 const SND_RANGE=380;
@@ -44,7 +44,7 @@ function playSnd(list){if(!G||!G.guest||!list||!list.length)return;const me=G.me
     if(a[4]!==null&&me){const dx=a[4]-me.x,dy=a[5]-me.y,d=Math.sqrt(dx*dx+dy*dy);if(d>SND_RANGE)continue;att=Math.pow(1-d/SND_RANGE,1.5)}
     if(att<.04)continue;try{sfx(a[0],a[1],a[2],a[3]*att)}catch(e){}n++;NP.stats.sndPlayed=(NP.stats.sndPlayed||0)+1}}
 /* ---------------- host ---------------- */
-function wrapPush(arr,key){if(!arr)return;arr.push=function(){for(const v of arguments)q[key].push(v);return Array.prototype.push.apply(this,arguments)}}
+function wrapPush(arr,key){if(!arr)return;arr.push=function(){for(const v of arguments){q[key].push(v);if(v&&(key==='ring'||key==='tr')){if(typeof v.x==='number')LAST={x:v.x,y:v.y,t:tickN};else if(typeof v.x1==='number')LAST={x:v.x1,y:v.y1,t:tickN}}}return Array.prototype.push.apply(this,arguments)}}
 let layer=null;
 function initMsg(){const ents=G.ents.map(e=>[e.side,e.op.bid||String(e.op.id).split('_')[0],e.nm,e.x,e.y,e.a,e.gh?1:0]),rp=Object.keys(ctxs).map(id=>[id,G.ents.indexOf(ctxs[id].ent)]);
   return{t:'init',mi:uiSel.mapIdx||0,pr:PAIRN,mode:G.mode,side:G.side,rnd,sc:score.slice(),ents,rp,asite:G.asite,ly:layer,id:Date.now()}}
@@ -100,7 +100,7 @@ NP.runRemotes=function(){ // host, inside update(): run each remote player's own
     G.me=sv.me;keys=sv.keys;mouse=sv.mouse;cam=sv.cam;G.cv=sv.cv;G.dc=sv.dc;G.arm=sv.arm;G.rf=sv.rf;G.prog=sv.prog;G.bm=sv.bm;G.bmf=sv.bmf}};
 function sendOwn(){const n=NET();if(!n)return;for(const id in ctxs){const c=ctxs[id];let arm=null;try{arm=c.arm?JSON.parse(JSON.stringify(c.arm)):null}catch(x){}
   n.send(id,{t:'own',n:NP.seq,gm:c.gmN?c.gm:undefined,gn:c.gmN|0,q:c.q|0,x:+c.ent.x.toFixed(2),y:+c.ent.y.toFixed(2),p:prims(c.ent),cv:c.cv,dc:c.dc,arm,rf:c.rf,pg:c.prog},{reliable:false})}}
-NP._toks=()=>toks;
+NP._toks=()=>toks;NP._snd=()=>sndQ;
 NP.sendInitTo=function(id,noInit){const n=NET();if(!n||!lastInit||!G||!base)return;if(!noInit)n.send(id,lastInit);if(G.decals&&G.decals.length)n.send(id,{t:'decals',d:G.decals.slice(-500).map(d=>[r1(d.x),r1(d.y),d.c,d.s])});
   const full=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(map[y][x]!==base[y][x])full.push(x,y,map[y][x]);if(full.length)n.send(id,{t:'tiles',c:full})};
 
