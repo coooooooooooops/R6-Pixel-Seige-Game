@@ -9,7 +9,7 @@
 'use strict';
 const SNAP_EVERY=3,TILE_EVERY=6,r1=v=>Math.round(v*10)/10;
 const NP=window.NP={on:false,role:null,seq:0,follow:0,stats:{snapOut:0,snapIn:0,tilesIn:0,initIn:0,bytesOut:0}};
-let ctxs={},pref={},ready={},left={},sentInit={},base=null,last=null,q={tr:[],ring:[],feed:[]},hooked=null,tickN=0,bar=null,lastInit=null;
+let ctxs={},pref={},ready={},left={},sentInit={},toks={},ghosts={},base=null,last=null,q={tr:[],ring:[],feed:[],dc:[]},hooked=null,tickN=0,bar=null,lastInit=null;
 const ONL=()=>window.R6Online||{},NET=()=>ONL().net,ROLE=()=>ONL().role;
 const has=()=>{const n=NET();return !!(n&&n.peers&&Object.keys(n.peers).length)};
 const send=(d,rel)=>{const n=NET();if(!n)return 0;try{const s=JSON.stringify(d);NP.stats.bytesOut+=s.length;return n.broadcast(d,rel?undefined:{reliable:false})}catch(e){return 0}};
@@ -34,6 +34,10 @@ for(const[n,pf]of[['fire',E],['trace',E],['hurt',E],['throwNade',E],['gadget',E]
 if(window.R6A){for(const n of['use','barBreak']){const o=R6A[n];if(typeof o==='function'&&!o.__np){R6A[n]=function(a){const prev=SRC;SRC=a&&typeof a.x==='number'?{x:a.x,y:a.y}:prev;try{return o.apply(this,arguments)}finally{SRC=prev}};R6A[n].__np=1}}}
 {const _sfx=window.sfx;if(!_sfx.__np){const w=function(f,d,t,v){try{if(NP.on&&NP.role==='host'&&SRC&&sndQ.length<24)sndQ.push([f|0,+(+d).toFixed(2),t||'square',+(+(v||.04)).toFixed(3),SRC.g?null:Math.round(SRC.x),SRC.g?null:Math.round(SRC.y)])}catch(e){}return _sfx.apply(this,arguments)};w.__np=1;window.sfx=w}}
 NP.silent=function(f,d,t,v,x,y){if(NP.on&&NP.role==='host'&&sndQ.length<24)sndQ.push([f|0,d,t,v,Math.round(x),Math.round(y)])}; // sound the host does not play (too far from the host's own operator) but a guest may hear
+let boomQ=[];
+{const _b=window.boom;if(typeof _b==='function'&&!_b.__np){const w=function(x,y,n,c){try{if(NP.on&&NP.role==='host'&&boomQ.length<10)boomQ.push([Math.round(x),Math.round(y),n|0,c||null])}catch(e){}return _b.apply(this,arguments)};w.__np=1;window.boom=w}}
+function playBooms(list){if(!G||!G.guest||!list)return;const me=G.me;for(const a of list){const prev=G.shake||0;try{boom(a[0],a[1],a[2],a[3])}catch(e){}
+  if(a[2]>=12){const d=me?Math.hypot(a[0]-me.x,a[1]-me.y):0;G.shake=Math.max(prev,a[2]/3*Math.max(0,1-d/500))}else G.shake=prev}}
 const SND_RANGE=380;
 function playSnd(list){if(!G||!G.guest||!list||!list.length)return;const me=G.me;let n=0;const seen={};
   for(const a of list){if(n>=8)break;const k=a[0]+'|'+a[4]+'|'+a[5];if(seen[k])continue;seen[k]=1;let att=.85;
@@ -60,13 +64,13 @@ NP.seat=function(){ // inside newRound(): give every connected guest a real (non
     ctxs[s.id]={id:s.id,ent:e,keys:e.rpk,mouse:{x:0,y:0,down:false},cam:{x:0,y:0},cv:-1,dc:-1,arm:null,rf:null,prog:null,bm:0,bmf:0,ev:[],seen:0}})};
 NP.round=function(){ // called at the end of newRound() on whoever runs the match
   if(ROLE()!=='host'){NP.on=false;return}
-  sentInit={};for(const s of(ONL().seats?ONL().seats():[]))sentInit[s.id]=1;
+  ghosts={};  sentInit={};for(const s of(ONL().seats?ONL().seats():[]))sentInit[s.id]=1;
   for(const id in ctxs){const c=ctxs[id];c.dc=c.ent.side==='A'?G.drones.findIndex(d=>d.own===c.ent&&d.n===1):-1}
-  NP.on=true;NP.role='host';base=copyMap();last=copyMap();q={tr:[],ring:[],feed:[]};tickN=0;NP.seq=0;
-  wrapPush(G.tr,'tr');wrapPush(G.ring,'ring');wrapPush(G.feed,'feed');
+  NP.on=true;NP.role='host';base=copyMap();last=copyMap();q={tr:[],ring:[],feed:[],dc:[]};tickN=0;NP.seq=0;
+  wrapPush(G.tr,'tr');wrapPush(G.ring,'ring');wrapPush(G.feed,'feed');wrapPush(G.decals,'dc');
   lastW='';lastEP=[];worldN=0;layer=layerOf();lastInit=initMsg();send(lastInit,true);NP.stats.initBytes=JSON.stringify(lastInit).length};
 NP.tick=function(){ // called once per update() on the host
-  if(!NP.on||NP.role!=='host'||!G||G.guest)return;tickN++;if(!has()){q={tr:[],ring:[],feed:[]};return}
+  if(!NP.on||NP.role!=='host'||!G||G.guest)return;tickN++;if(!has()){q={tr:[],ring:[],feed:[],dc:[]};return}
   if(tickN%TILE_EVERY===0){const c=diffTiles(last);if(c.length)send({t:'tiles',c},true)}
   if(tickN%SNAP_EVERY)return;
   const H_=G.hostage,s={t:'snap',n:++NP.seq,ph:G.phase,tm:G.t,msg:G.msg,sc:score,rf:G.reinf,br:G.barr,sh:G.shown?1:0,sn:sndQ.splice(0),sec:G.sec,res:G.res,et:G.endT,
@@ -74,15 +78,16 @@ NP.tick=function(){ // called once per update() on the host
    e:G.ents.map(e=>[r1(e.x),r1(e.y),+e.a.toFixed(2),Math.round(e.hp),e.alive?1:0,+(e.mv||0).toFixed(1),e.sel,e.tag>0?1:0,e.gh?1:0,e.rev?1:0,e.blind>0?1:0,e.stun>0?1:0]),
    d:G.drones.map(d=>[r1(d.x),r1(d.y),+d.a.toFixed(2),Math.round(d.hp),d.alive?1:0,d.fly?1:0,d.n,G.ents.indexOf(d.own),d.hit|0]),
    c:G.cams.map(c=>[Math.round(c.hp),c.alive?1:0,+c.a.toFixed(2)]),
-   tr:q.tr.map(t=>[r1(t.x1),r1(t.y1),r1(t.x2),r1(t.y2)]),rg:q.ring.map(r=>[r1(r.x),r1(r.y),r.c]),fd:q.feed.map(f=>[f.s,f.c])};
-  q={tr:[],ring:[],feed:[]};send(s,false);sendOwn();if(tickN%(SNAP_EVERY*2)===0)sendWorld();NP.stats.snapOut++};
+   tr:q.tr.map(t=>[r1(t.x1),r1(t.y1),r1(t.x2),r1(t.y2)]),dc:q.dc.slice(0,30).map(d=>[r1(d.x),r1(d.y),d.c,d.s]),bm:boomQ.splice(0),rg:q.ring.map(r=>[r1(r.x),r1(r.y),r.c]),fd:q.feed.map(f=>[f.s,f.c])};
+  q={tr:[],ring:[],feed:[],dc:[]};send(s,false);sendOwn();if(tickN%(SNAP_EVERY*2)===0)sendWorld();NP.stats.snapOut++};
 const SKIP={op:1,own:1,rx:1,post:1,wander:1,rpk:1,work:1,tk:1,fol:1,x:1,y:1,a:1,rp:1};
 function prims(e){const o={};for(const k of Object.keys(e)){if(SKIP[k])continue;const v=e[k],t=typeof v;if(v===null||t==='number'||t==='string'||t==='boolean')o[k]=v;
   else if(t==='object'&&v){try{const j=JSON.stringify(v);if(j.length<300)o[k]=JSON.parse(j)}catch(x){}}}return o}
 const FAKE={repeat:false,preventDefault(){}};
 NP.runRemotes=function(){ // host, inside update(): run each remote player's own controls under their own input state
   for(const id in ctxs){const c=ctxs[id],e=c.ent;if(!e)continue;
-    const sv={me:G.me,keys,mouse,cam,cv:G.cv,dc:G.dc,arm:G.arm,rf:G.rf,prog:G.prog,bm:G.bm,bmf:G.bmf};
+    if(c.seen&&Date.now()-c.seen>800){for(const k in c.keys)delete c.keys[k];c.mouse.down=false;NP.stats.stale=(NP.stats.stale||0)+1}
+    const msg0=G.msg,sv={me:G.me,keys,mouse,cam,cv:G.cv,dc:G.dc,arm:G.arm,rf:G.rf,prog:G.prog,bm:G.bm,bmf:G.bmf};
     G.me=e;keys=c.keys;mouse=c.mouse;cam=c.cam;G.cv=c.cv;G.dc=c.dc;G.arm=c.arm;G.rf=c.rf;G.prog=c.prog;G.bm=c.bm;G.bmf=c.bmf;
     try{
       while(c.ev.length){const v=c.ev.shift();if(!e.alive)continue;
@@ -91,10 +96,12 @@ NP.runRemotes=function(){ // host, inside update(): run each remote player's own
         else if(v.m===2)mouseR()}
       remoteTick(e)}catch(x){NP.err=String(x&&x.stack||x)}
     c.cv=G.cv;c.dc=G.dc;c.arm=G.arm;c.rf=G.rf;c.prog=G.prog;c.bm=G.bm;c.bmf=G.bmf;
+    if(G.msg!==msg0){c.gm=G.msg;c.gmN=(c.gmN||0)+1;G.msg=msg0}
     G.me=sv.me;keys=sv.keys;mouse=sv.mouse;cam=sv.cam;G.cv=sv.cv;G.dc=sv.dc;G.arm=sv.arm;G.rf=sv.rf;G.prog=sv.prog;G.bm=sv.bm;G.bmf=sv.bmf}};
 function sendOwn(){const n=NET();if(!n)return;for(const id in ctxs){const c=ctxs[id];let arm=null;try{arm=c.arm?JSON.parse(JSON.stringify(c.arm)):null}catch(x){}
-  n.send(id,{t:'own',n:NP.seq,q:c.q|0,x:+c.ent.x.toFixed(2),y:+c.ent.y.toFixed(2),p:prims(c.ent),cv:c.cv,dc:c.dc,arm,rf:c.rf,pg:c.prog},{reliable:false})}}
-NP.sendInitTo=function(id){const n=NET();if(!n||!lastInit||!G||!base)return;n.send(id,lastInit);
+  n.send(id,{t:'own',n:NP.seq,gm:c.gmN?c.gm:undefined,gn:c.gmN|0,q:c.q|0,x:+c.ent.x.toFixed(2),y:+c.ent.y.toFixed(2),p:prims(c.ent),cv:c.cv,dc:c.dc,arm,rf:c.rf,pg:c.prog},{reliable:false})}}
+NP._toks=()=>toks;
+NP.sendInitTo=function(id,noInit){const n=NET();if(!n||!lastInit||!G||!base)return;if(!noInit)n.send(id,lastInit);if(G.decals&&G.decals.length)n.send(id,{t:'decals',d:G.decals.slice(-500).map(d=>[r1(d.x),r1(d.y),d.c,d.s])});
   const full=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(map[y][x]!==base[y][x])full.push(x,y,map[y][x]);if(full.length)n.send(id,{t:'tiles',c:full})};
 
 /* ---- world state (5C-3): G.traps/smokes/charges/nades/pings, dynamic cams, all abilities.js arrays (R6A.st()), changed per-entity fields ---- */
@@ -126,13 +133,18 @@ function applyWorld(m){if(!G||!G.guest||m.n<=(NP.worldN||0))return;NP.worldN=m.n
   const S=window.R6A&&R6A.st&&R6A.st();if(S&&w.S)for(const k in w.S){if(Array.isArray(w.S[k])){if(!Array.isArray(S[k]))S[k]=[];fill(S[k],w.S[k])}else S[k]=de(w.S[k])}}
 
 function leaveGuest(id,why){delete pref[id];delete ready[id];left[id]=1;const c=ctxs[id];if(!c||!G||G.guest)return;const e=c.ent;
+  if(e&&toks[id])ghosts[toks[id]]={ent:e,nm:e.nm,t:Date.now()};
   if(e){e.bot=true;delete e.rp;delete e.rpk;e.nm=String(e.nm).slice(0,8)+' BOT';if(G.feed)G.feed.push({t:360,s:String(e.nm)+' - '+why,c:'#ff5a4a'})}delete ctxs[id]}
+function reseat(id,e,nm){e.bot=false;e.rp=id;e.rpk={};e.nm=nm;delete left[id];
+  ctxs[id]={id,ent:e,keys:e.rpk,mouse:{x:0,y:0,down:false},cam:{x:0,y:0},cv:-1,dc:-1,arm:null,rf:null,prog:null,bm:0,bmf:0,ev:[],seen:0};
+  const n=NET();sentInit[id]=1;if(n){lastInit=initMsg();n.send(id,lastInit);NP.sendInitTo(id,true)}
+  if(G.feed)G.feed.push({t:360,s:nm+' - REJOINED',c:'#6aff9a'});NP.stats.reseat=(NP.stats.reseat||0)+1}
 function hostHooks(n){n.on('close',id=>{if(ROLE()==='host'||NP.role==='host')leaveGuest(id,'LEFT')})}
 setInterval(()=>{if(ROLE()!=='host'||!NP.on||!G||G.guest)return;for(const s of(ONL().seats?ONL().seats():[])){if(s.host||sentInit[s.id]||!NET()||!NET().peers[s.id])continue;sentInit[s.id]=1;NP.sendInitTo(s.id);NP.stats.lateJoin=(NP.stats.lateJoin||0)+1}},500);
 /* ---------------- guest ---------------- */
 function barEl(){if(bar)return bar;bar=document.createElement('div');bar.id='npBar';
   bar.style.cssText='position:fixed;left:50%;top:6px;transform:translateX(-50%);z-index:30;padding:5px 14px;background:rgba(10,12,16,.82);border:1px solid #e5303a;color:#e8e8ee;font:11px Silkscreen,monospace;letter-spacing:2px;pointer-events:none;display:none;white-space:nowrap';document.body.appendChild(bar);return bar}
-function initGuest(m){NP.stats.initIn++;NP.overFor=null;{const o=document.getElementById('over');if(o)o.style.display='none'}NP.lastSnapAt=Date.now();NP.pickMode=false;document.body.classList.remove('npPick');NP.on=true;NP.role='client';NP.follow=0;NP.snapN=0;NP.worldN=0;
+function initGuest(m){NP.stats.initIn++;NP.overFor=null;{const o=document.getElementById('over');if(o)o.style.display='none'}NP.lastSnapAt=Date.now();NP.pickMode=false;document.body.classList.remove('npPick');NP.on=true;NP.role='client';NP.follow=0;NP.snapN=0;NP.worldN=0;NP.privMsg=null;NP.hostMsg=null;NP.gmN=0;
   uiSel.mapIdx=m.mi;uiSel.mode=m.mode;uiSel.side=m.side;setMap(m.mi,m.pr);buildMap();resolveSpawns();if(m.ly)applyLayer(m.ly);fcache={};score=m.sc.slice();rnd=m.rnd;
   G={mode:m.mode,side:m.side,phase:'prep',t:2700,rq:[],cams:CAMTILES.map(c=>({x:c[0]*T+8,y:(c[1]+1)*T+3,wy:c[1]*T,a:PI/2,hp:40,alive:1})),cv:-1,pings:[],ents:[],decals:[],nades:[],shake:0,traps:[],smokes:[],charges:[],fx:[],tr:[],ring:[],feed:[],reinf:0,drones:[],dc:-1,
    bomb:{prog:0,act:0,x:SITES[0][0],y:SITES[0][1]},hostage:{x:HOST[0],y:HOST[1],hp:100,carrier:null},sec:0,msg:'',endT:0,res:null,guest:1,barr:0,bq:[],asite:m.asite};
@@ -145,15 +157,15 @@ function initGuest(m){NP.stats.initIn++;NP.overFor=null;{const o=document.getEle
 NP.paintBar=function(){if(!bar||!G||!G.guest)return;const e=G.me,own=NP.self>=0&&G.ents[NP.self];bar.style.display=own&&own.alive?'none':'block';bar.textContent=(own?'YOU ARE DOWN - ':'')+'SPECTATING  '+(e?e.nm+' ('+(e.side==='A'?'ATK':'DEF')+')':'')+'   CLICK / TAB = NEXT PLAYER'};
 function applySnap(s){
   if(!G||!G.guest||s.n<=NP.snapN)return;NP.snapN=s.n;NP.stats.snapIn++;
-  G.phase=s.ph;G.t=s.tm;G.msg=s.msg;score=s.sc;G.reinf=s.rf;G.barr=s.br;G.sec=s.sec;G.res=s.res;G.endT=s.et;G.shown=s.sh;NP.lastSnapAt=Date.now();G.bomb.prog=s.b[0];G.bomb.act=s.b[1];
+  G.phase=s.ph;G.t=s.tm;if(s.msg!==NP.hostMsg){NP.hostMsg=s.msg;NP.privMsg=null}G.msg=NP.privMsg!=null?NP.privMsg:s.msg;score=s.sc;G.reinf=s.rf;G.barr=s.br;G.sec=s.sec;G.res=s.res;G.endT=s.et;G.shown=s.sh;NP.lastSnapAt=Date.now();G.bomb.prog=s.b[0];G.bomb.act=s.b[1];
   G.hostage.x=s.h[0];G.hostage.y=s.h[1];G.hostage.hp=s.h[2];G.hostage.carrier=s.h[3]>=0?G.ents[s.h[3]]||null:null;
   s.e.forEach((a,i)=>{const e=G.ents[i];if(!e)return;e.tx=a[0];e.ty=a[1];e.ta=a[2];e.hp=a[3];e.alive=a[4];e.mv=a[5];e.sel=a[6];e.tag=a[7]?30:0;e.gh=a[8];e.rev=a[9];e.blind=a[10]?30:0;e.stun=a[11]?30:0;if(!e.alive)e.hp=0});
   while(G.drones.length<s.d.length){const a=s.d[G.drones.length],o=G.ents[a[7]]||G.ents[0],d=mkDrone(o,a[6],a[5]);if(!d)break;G.drones.push(d)}
   s.d.forEach((a,i)=>{const d=G.drones[i];if(!d)return;d.x=a[0];d.y=a[1];d.a=a[2];d.hp=a[3];d.alive=a[4];d.hit=a[8]});
   s.c.forEach((a,i)=>{const c=G.cams[i];if(c){c.hp=a[0];c.alive=a[1];c.a=a[2]}});
-  for(const t of s.tr)G.tr.push({x1:t[0],y1:t[1],x2:t[2],y2:t[3],t:3,pl:false});for(const r of s.rg)G.ring.push({x:r[0],y:r[1],r:2,c:r[2]});for(const f of s.fd)G.feed.push({t:360,s:f[0],c:f[1]});
+  for(const d of s.dc||[])G.decals.push({x:d[0],y:d[1],c:d[2],s:d[3]});for(const t of s.tr)G.tr.push({x1:t[0],y1:t[1],x2:t[2],y2:t[3],t:3,pl:false});for(const r of s.rg)G.ring.push({x:r[0],y:r[1],r:2,c:r[2]});for(const f of s.fd)G.feed.push({t:360,s:f[0],c:f[1]});
   const own=NP.self>=0&&G.ents[NP.self];if(own&&own.alive)G.me=own;else if(!G.me||!G.me.alive)NP.next(true);NP.paintBar()}
-function applyOwn(m){if(!G||!G.guest||NP.self<0||m.n<=NP.ownN)return;NP.ownN=m.n;const e=G.ents[NP.self];if(!e)return;for(const k in m.p)if(k!=='alive'||true)e[k]=m.p[k];e.tx=e.tx;G.cv=m.cv;G.dc=m.dc;G.arm=m.arm;G.rf=m.rf;G.prog=m.pg;if(m.x!==undefined){e.tx=m.x;e.ty=m.y}reconcile(m,e);NP.stats.ownIn=(NP.stats.ownIn||0)+1}
+function applyOwn(m){if(!G||!G.guest||NP.self<0||m.n<=NP.ownN)return;NP.ownN=m.n;if(m.gn&&m.gn!==NP.gmN){NP.gmN=m.gn;NP.privMsg=m.gm;G.msg=m.gm}const e=G.ents[NP.self];if(!e)return;for(const k in m.p)if(k!=='alive'||true)e[k]=m.p[k];e.tx=e.tx;G.cv=m.cv;G.dc=m.dc;G.arm=m.arm;G.rf=m.rf;G.prog=m.pg;if(m.x!==undefined){e.tx=m.x;e.ty=m.y}reconcile(m,e);NP.stats.ownIn=(NP.stats.ownIn||0)+1}
 NP.next=function(auto){if(!G||!G.guest)return;const n=G.ents.length;if(!n)return;let i=G.ents.indexOf(G.me),tries=0;
   const pass=o=>o.alive&&(!auto||o.side===(G.me?G.me.side:G.side)||true);
   do{i=(i+1)%n;tries++}while(tries<=n&&!pass(G.ents[i]));G.me=G.ents[i];NP.paintBar()};
@@ -176,13 +188,13 @@ NP.key=function(k,ev){if(playing()){if(k==='m'&&!ev.repeat){G.bm=G.bm?0:1;G.bmf=
    if(k===' ')ev.preventDefault();if(!ev.repeat)toHost({t:'ev',k},1);return}
   if(k==='tab'||k==='n'){ev.preventDefault();NP.next()}};
 NP.click=function(b){if(playing()){toHost({t:'ev',m:b|0},1);return}if(!b)NP.next()};
-setInterval(()=>{if(!playing())return;const h=[];for(const k in keys)if(keys[k])h.push(k);const q=(NP.inSeq=((NP.inSeq||0)+1)%65000),me=G.ents[NP.self];if(wasPred&&me){hist.push([q,me.x,me.y]);if(hist.length>150)hist.shift()}
-  toHost({t:'in',q,k:h,x:+mouse.x.toFixed(1),y:+mouse.y.toFixed(1),d:mouse.down?1:0,cx:+cam.x.toFixed(1),cy:+cam.y.toFixed(1)},0)},33);
+setInterval(()=>{if(!playing()||NP.drop)return;const idle=PAUSED||document.hidden||NP.mute,h=[];if(!idle)for(const k in keys)if(keys[k])h.push(k);const q=(NP.inSeq=((NP.inSeq||0)+1)%65000),me=G.ents[NP.self];if(wasPred&&me){hist.push([q,me.x,me.y]);if(hist.length>150)hist.shift()}
+  toHost({t:'in',q,k:h,x:+mouse.x.toFixed(1),y:+mouse.y.toFixed(1),d:(!idle&&mouse.down)?1:0,cx:+cam.x.toFixed(1),cy:+cam.y.toFixed(1)},0)},33);
 NP.step=function(){ // runs instead of update() on a guest, once per frame
   if(!G||!G.guest)return;if(G.shown)guestOver();
   const predicting=predictFrame();
   for(const e of G.ents){if(e.tx===undefined)continue;if(predicting&&e===G.ents[NP.self]){if(e.mv>.1)e.ph=(e.ph||0)+.2;continue}const dx=e.tx-e.x,dy=e.ty-e.y;if(dx*dx+dy*dy>60*60){e.x=e.tx;e.y=e.ty}else{e.x+=dx*.4;e.y+=dy*.4}e.a+=Math.atan2(Math.sin(e.ta-e.a),Math.cos(e.ta-e.a))*.5;if(e.mv>.1)e.ph=(e.ph||0)+.2}
-  for(const d of G.drones){d.roll+=.1}
+  try{updFx()}catch(e){}for(const d of G.drones){d.roll+=.1}
   for(let i=G.tr.length-1;i>=0;i--)if(--G.tr[i].t<=0)G.tr.splice(i,1);for(let i=G.ring.length-1;i>=0;i--){G.ring[i].r+=3;if(G.ring[i].r>60)G.ring.splice(i,1)}
   for(let i=G.feed.length-1;i>=0;i--)if(--G.feed[i].t<=0)G.feed.splice(i,1);
   if(G.shake>0)G.shake--;
@@ -238,6 +250,8 @@ function hostEnded(text){const ov=$$('over');NP.pickMode=false;document.body.cla
 /* ---------------- wiring ---------------- */
 function onMsg(from,m){if(!m||typeof m!=='object')return;
   if(ROLE()==='host'&&m.t==='bye'){leaveGuest(from,'LEFT');return}
+  if(ROLE()==='host'&&m.t==='tok'&&typeof m.tok==='string'&&m.tok.length<40){toks[from]=m.tok;const gh=ghosts[m.tok];
+    if(gh&&NP.on&&G&&!G.guest&&G.ents.includes(gh.ent)&&gh.ent.alive&&gh.ent.bot&&!ctxs[from]&&G.phase!=='end'){delete ghosts[m.tok];reseat(from,gh.ent,gh.nm)}return}
   if(ROLE()==='host'&&m.t==='pick'){const p={};for(const sd of['A','D'])if(typeof m[sd]==='string'&&OPS[sd].some(o=>o.id===m[sd]))p[sd]=m[sd];if(m.L&&typeof m.L==='object'){p.L={};for(const sd of['A','D']){const l=m.L[sd],b=p[sd]&&OPS[sd].find(o=>o.id===p[sd]);if(l&&b&&typeof l==='object')p.L[sd]={p:b.pw.includes(l.p)?l.p:null,s:b.sw.includes(l.s)?l.s:null,g:G2[sd].includes(l.g)?l.g:null}}}delete left[from];pref[from]=p;ready[from]=1;NP.stats.picks=(NP.stats.picks||0)+1;return}
   if(ROLE()==='host'){const c=ctxs[from];if(!c)return;
    if(m.t==='in'&&Array.isArray(m.k)){const k={};for(const n of m.k.slice(0,20))if(typeof n==='string'&&n.length<12)k[n]=true;
@@ -246,8 +260,10 @@ function onMsg(from,m){if(!m||typeof m!=='object')return;
    return}
   if(ROLE()==='client'&&from==='host'){
    if(m.t==='init'){try{initGuest(m)}catch(e){NP.err=String(e&&e.stack||e);console.error('netplay init failed',NP.err)}}else if(m.t==='tiles'&&G&&G.guest){NP.stats.tilesIn++;for(let i=0;i<m.c.length;i+=3)if(map[m.c[i+1]]&&map[m.c[i+1]][m.c[i]]!==m.c[i+2])setTile(m.c[i],m.c[i+1],m.c[i+2])}
-   else if(m.t==='end')hostEnded('HOST ENDED THE MATCH');else if(m.t==='snap'){applySnap(m);if(m.sn&&m.sn.length)playSnd(m.sn)}else if(m.t==='own')applyOwn(m);else if(m.t==='world')applyWorld(m)}}
+   else if(m.t==='end')hostEnded('HOST ENDED THE MATCH');else if(m.t==='snap'){applySnap(m);if(m.sn&&m.sn.length)playSnd(m.sn);if(m.bm&&m.bm.length)playBooms(m.bm)}else if(m.t==='own')applyOwn(m);else if(m.t==='decals'&&G&&G.guest){for(const d of m.d)G.decals.push({x:d[0],y:d[1],c:d[2],s:d[3]})}else if(m.t==='world')applyWorld(m)}}
 NP.leave=function(){NP.on=false;if(bar)bar.style.display='none'};
-setInterval(()=>{const n=NET();if(n&&hooked!==n){hooked=n;n.on('message',onMsg);hostHooks(n);n.on('close',id=>{if(id==='host')hostEnded('HOST DISCONNECTED')})}
+setInterval(()=>{const n=NET();if(n&&ROLE()==='client'&&NP.tokFor!==n){let t='';try{t=localStorage.getItem('r6s_tok')||'';if(!t){t=Math.random().toString(36).slice(2,12)+Date.now().toString(36);localStorage.setItem('r6s_tok',t)}}catch(e){t='t'+Math.random().toString(36).slice(2,12)}
+  if(n.send('host',{t:'tok',tok:t}))NP.tokFor=n}
+  if(n&&hooked!==n){hooked=n;n.on('message',onMsg);hostHooks(n);n.on('close',id=>{if(id==='host')hostEnded('HOST DISCONNECTED')})}
   if(bar&&(!G||!G.guest))bar.style.display='none'},500);
 })();

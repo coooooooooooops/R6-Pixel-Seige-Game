@@ -881,16 +881,16 @@ function tagNear(dr,rng,sm){rng=rng||150;const me=G.me,wx=mouse.x+cam.x,wy=mouse
 // pings: right click from a drone/cam, V anywhere. Tags a visible threat under the cursor, otherwise marks the location.
 function doPing(vp){const me=G.me;if(!me.alive||G.phase==='end'||mouse.y>VH2)return;const wx=mouse.x+cam.x,wy=mouse.y+cam.y;if(wx<0||wy<0||wx>=W*T||wy>=H*T)return;
  let hit=null,hd=24;for(const e of G.ents)if(e.alive&&e.side!==me.side&&visible(e)===true){const d=dst(wx,wy,e.x,e.y);if(d<hd){hit=e;hd=d}}
- if(hit){tagE(hit);G.pings.push({x:hit.x,y:hit.y,t:420,k:'enemy',c:'#ff4a4a',l:'ENEMY'})}else{G.pings.push({x:wx,y:wy,t:540,k:'loc',c:'#ffd27a',l:'PING'});botsReact(wx,wy,'loc')}
- while(G.pings.length>4)G.pings.shift();sfx(1200,.08,'sine',.04);G.ring.push({x:G.pings[G.pings.length-1].x,y:G.pings[G.pings.length-1].y,r:2,c:hit?'#ff4a4a':'#ffd27a'})}
+ if(hit){tagE(hit);G.pings.push({x:hit.x,y:hit.y,t:420,k:'enemy',c:'#ff4a4a',l:'ENEMY',s:me.side})}else{G.pings.push({x:wx,y:wy,t:540,k:'loc',c:'#ffd27a',l:'PING',s:me.side});botsReact(wx,wy,'loc')}
+ for(const sd of['A','D']){let k=0;for(let i=G.pings.length-1;i>=0;i--)if(G.pings[i].s===sd&&++k>4)G.pings.splice(i,1)}sfx(1200,.08,'sine',.04);G.ring.push({x:G.pings[G.pings.length-1].x,y:G.pings[G.pings.length-1].y,r:2,c:hit?'#ff4a4a':'#ffd27a'})}
 const pingView=()=>doPing(G.cv>=0?G.cams[G.cv]:DRN()?CD():G.me);
 function exitView(){if(G.cv>=0||DRN()){G.cv=-1;G.dc=-1;G.msg='VIEW CLOSED'}}
 const EXB={x:VW/2-34,y:VH-122,w:68,h:14},inExit=()=>mouse.x>=EXB.x&&mouse.x<=EXB.x+EXB.w&&mouse.y>=EXB.y&&mouse.y<=EXB.y+EXB.h;
 function drawPings(){const me=G.me,fx=G.cv>=0?G.cams[G.cv]:DRN()?CD():me,fl=fx.y>=OY*T;
- for(const p of G.pings){const a=Math.min(1,p.t/60),pr=(G.t%40)/40;g.globalAlpha=a;g.strokeStyle=p.c;g.lineWidth=1;g.beginPath();g.arc(p.x,p.y,4+pr*10,0,7);g.stroke();
+ for(const p of G.pings){if(p.s&&p.s!==me.side)continue;const a=Math.min(1,p.t/60),pr=(G.t%40)/40;g.globalAlpha=a;g.strokeStyle=p.c;g.lineWidth=1;g.beginPath();g.arc(p.x,p.y,4+pr*10,0,7);g.stroke();
   g.fillStyle='#000';g.fillRect(p.x-5,p.y-19,10,12);g.fillStyle=p.c;g.beginPath();g.moveTo(p.x,p.y-18);g.lineTo(p.x+4,p.y-13);g.lineTo(p.x,p.y-8);g.lineTo(p.x-4,p.y-13);g.fill();T8(p.l,p.x,p.y-28,p.c,'center');g.globalAlpha=1}}
 function drawPingEdges(){const me=G.me,fx=G.cv>=0?G.cams[G.cv]:DRN()?CD():me,fl=fx.y>=OY*T;
- for(const p of G.pings){if((p.y>=OY*T)!==fl)continue;const sx=p.x-cam.x,sy=p.y-cam.y;if(sx>=0&&sx<=VW&&sy>=0&&sy<=VH2)continue;const cx=cl(sx,8,VW-8),cy=cl(sy,24,VH2-8);g.globalAlpha=Math.min(1,p.t/60);g.fillStyle='#000';g.fillRect(cx-5,cy-5,10,10);g.fillStyle=p.c;g.beginPath();g.moveTo(cx,cy-4);g.lineTo(cx+4,cy);g.lineTo(cx,cy+4);g.lineTo(cx-4,cy);g.fill();g.globalAlpha=1}}
+ for(const p of G.pings){if(p.s&&p.s!==me.side)continue;if((p.y>=OY*T)!==fl)continue;const sx=p.x-cam.x,sy=p.y-cam.y;if(sx>=0&&sx<=VW&&sy>=0&&sy<=VH2)continue;const cx=cl(sx,8,VW-8),cy=cl(sy,24,VH2-8);g.globalAlpha=Math.min(1,p.t/60);g.fillStyle='#000';g.fillRect(cx-5,cy-5,10,10);g.fillStyle=p.c;g.beginPath();g.moveTo(cx,cy-4);g.lineTo(cx+4,cy);g.lineTo(cx,cy+4);g.lineTo(cx-4,cy);g.fill();g.globalAlpha=1}}
 function drawExitBtn(){const h=inExit();g.fillStyle=h?'#ef3a42':'rgba(8,10,14,.9)';g.fillRect(EXB.x,EXB.y,EXB.w,EXB.h);g.strokeStyle='#ef3a42';g.lineWidth=1;g.strokeRect(EXB.x+.5,EXB.y+.5,EXB.w-1,EXB.h-1);T8('EXIT VIEW',EXB.x+EXB.w/2,EXB.y+3,'#fff','center')}
 function interact(me){if(G.mode==='bomb'&&me.side==='A'){const b=G.bomb;for(const q of SITES)if(dst(me.x,me.y,q[0],q[1])<22){b.act=1;b.x=q[0];b.y=q[1];me.mv=0;break}}
  if(G.mode==='hostage'&&me.side==='A'&&!G.hostage.carrier&&dst(me.x,me.y,G.hostage.x,G.hostage.y)<16)G.hostage.carrier=me}
