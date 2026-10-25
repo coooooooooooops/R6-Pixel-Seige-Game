@@ -132,6 +132,10 @@ function applyWorld(m){if(!G||!G.guest||m.n<=(NP.worldN||0))return;NP.worldN=m.n
   fill(G.traps,w.tr);fill(G.smokes,w.sm);fill(G.charges,w.ch);fill(G.nades,w.nd);fill(G.pings,w.pg);
   const S=window.R6A&&R6A.st&&R6A.st();if(S&&w.S)for(const k in w.S){if(Array.isArray(w.S[k])){if(!Array.isArray(S[k]))S[k]=[];fill(S[k],w.S[k])}else S[k]=de(w.S[k])}}
 
+NP.matchEnd=function(){ // host, when the match is decided: give every guest the stats table so it can be paid like single player
+  const n=NET();if(!n||ROLE()!=='host'||!G||G.guest)return;const ci={A:0,D:0},key=new Map();for(const e of G.ents){const i=ci[e.side]++;key.set(e,(e.side===G.side?'T':'E')+i)}
+  const rows=Object.keys(MS).map(k=>[k,{team:MS[k].team,op:MS[k].op,sc:MS[k].sc,kl:MS[k].kl,dd:MS[k].dd}]);
+  for(const id in ctxs){const c=ctxs[id];n.send(id,{t:'mstats',rows,you:key.get(c.ent)||''});NP.stats.mstatsOut=(NP.stats.mstatsOut||0)+1}};
 function leaveGuest(id,why){delete pref[id];delete ready[id];left[id]=1;const c=ctxs[id];if(!c||!G||G.guest)return;const e=c.ent;
   if(e&&toks[id])ghosts[toks[id]]={ent:e,nm:e.nm,t:Date.now()};
   if(e){e.bot=true;delete e.rp;delete e.rpk;e.nm=String(e.nm).slice(0,8)+' BOT';if(G.feed)G.feed.push({t:360,s:String(e.nm)+' - '+why,c:'#ff5a4a'})}delete ctxs[id]}
@@ -167,7 +171,8 @@ function applySnap(s){
   const own=NP.self>=0&&G.ents[NP.self];if(own&&own.alive)G.me=own;else if(!G.me||!G.me.alive)NP.next(true);NP.paintBar()}
 function applyOwn(m){if(!G||!G.guest||NP.self<0||m.n<=NP.ownN)return;NP.ownN=m.n;if(m.gn&&m.gn!==NP.gmN){NP.gmN=m.gn;NP.privMsg=m.gm;G.msg=m.gm}const e=G.ents[NP.self];if(!e)return;for(const k in m.p)if(k!=='alive'||true)e[k]=m.p[k];e.tx=e.tx;G.cv=m.cv;G.dc=m.dc;G.arm=m.arm;G.rf=m.rf;G.prog=m.pg;if(m.x!==undefined){e.tx=m.x;e.ty=m.y}reconcile(m,e);NP.stats.ownIn=(NP.stats.ownIn||0)+1}
 NP.next=function(auto){if(!G||!G.guest)return;const n=G.ents.length;if(!n)return;let i=G.ents.indexOf(G.me),tries=0;
-  const pass=o=>o.alive&&(!auto||o.side===(G.me?G.me.side:G.side)||true);
+  const own=NP.self>=0&&G.ents[NP.self],mates=own?G.ents.some(o=>o.alive&&o.side===own.side):false;
+  const pass=o=>o.alive&&(!own||!mates||o.side===own.side); // a downed player watches TEAMMATES only (no peeking through enemy eyes); with no seat (late joiner) or no teammate left anything goes
   do{i=(i+1)%n;tries++}while(tries<=n&&!pass(G.ents[i]));G.me=G.ents[i];NP.paintBar()};
 const playing=()=>NP.self>=0&&G&&G.guest&&G.ents[NP.self]&&G.ents[NP.self].alive;
 const toHost=(d,rel)=>{const n=NET();if(n)n.send('host',d,rel?undefined:{reliable:false})};
@@ -195,8 +200,6 @@ NP.step=function(){ // runs instead of update() on a guest, once per frame
   const predicting=predictFrame();
   for(const e of G.ents){if(e.tx===undefined)continue;if(predicting&&e===G.ents[NP.self]){if(e.mv>.1)e.ph=(e.ph||0)+.2;continue}const dx=e.tx-e.x,dy=e.ty-e.y;if(dx*dx+dy*dy>60*60){e.x=e.tx;e.y=e.ty}else{e.x+=dx*.4;e.y+=dy*.4}e.a+=Math.atan2(Math.sin(e.ta-e.a),Math.cos(e.ta-e.a))*.5;if(e.mv>.1)e.ph=(e.ph||0)+.2}
   try{updFx()}catch(e){}for(const d of G.drones){d.roll+=.1}
-  for(let i=G.tr.length-1;i>=0;i--)if(--G.tr[i].t<=0)G.tr.splice(i,1);for(let i=G.ring.length-1;i>=0;i--){G.ring[i].r+=3;if(G.ring[i].r>60)G.ring.splice(i,1)}
-  for(let i=G.feed.length-1;i>=0;i--)if(--G.feed[i].t<=0)G.feed.splice(i,1);
   if(G.shake>0)G.shake--;
   if(bar&&((NP.pb=(NP.pb||0)+1)%30===0))NP.paintBar()};
 
@@ -220,13 +223,17 @@ function enterPick(m,force){if(ROLE()!=='client'||(G&&G.guest&&!force))return;NP
 ONL().onStart=m=>{if(ROLE()==='client')enterPick(m)};
 
 /* ---- round flow (5C-4b) ---- */
+function guestPay(){if(NP.paid||!NP.mstats||!NP.matchOver)return;NP.paid=1;const mo=NP.matchOver,rows=NP.mstats.rows.map(([k,r])=>Object.assign({},r,{you:k===NP.mstats.you}));
+  try{window.R6Acct&&R6Acct.match(mo.mw)}catch(_){}try{if(window.ECO)ECO.matchEnd({won:mo.mw,rows,my:mo.my,their:mo.their})}catch(_){}}
 function guestOver(){const ov=$$('over');const key=rnd+'|'+(G&&G.res?G.res.w+'|'+G.res.why:'');if(!G||!G.guest||!G.res||NP.overFor===key)return;NP.overFor=key;
   const own=NP.self>=0&&G.ents[NP.self]?G.ents[NP.self].side:G.side,i=own==='A'?0:1,mw=score[i]>=3,ml=score[1-i]>=3,won=G.res.w===own;
   $$('ot').textContent=mw?'MATCH WON':ml?'MATCH LOST':(won?'ROUND WON':'ROUND LOST');$$('ot').style.color=won?'#6aff9a':'#ff5a4a';
   $$('os').textContent=G.res.why+'  |  ATK '+score[0]+' - '+score[1]+' DEF  |  BEST OF 5, FIRST TO 3';
   const b=$$('ob'),nxt=own==='A'?'D':'A',mode=G.mode,mapi=uiSel.mapIdx;b.textContent=(mw||ml)?'MAIN MENU':'NEXT ROUND: PICK OPERATOR ('+(nxt==='A'?'ATTACK':'DEFENCE')+')';
-  b.onclick=()=>{ov.style.display='none';NP.overFor=null;G=null;if(mw||ml){NP.on=false;score=[0,0];rnd=1;toMenu();return}
+  b.onclick=()=>{ov.style.display='none';NP.overFor=null;G=null;if(mw||ml){NP.on=false;NP.paid=false;NP.mstats=null;NP.matchOver=null;score=[0,0];rnd=1;toMenu();return}
     rnd++;uiSel.side=nxt;uiSel.mapIdx=mapi;$$('menu').style.display='block';enterPick({mode,map:mapi},1)};
+  try{const me=NP.self>=0&&G.ents[NP.self];if(me&&window.R6Acct)R6Acct.round({me,side:me.side},G.res.w)}catch(_){}
+  if(mw||ml){NP.matchOver={mw,ml,my:score[i],their:score[1-i]};guestPay()}else{try{window.ECO&&ECO.clearRewards()}catch(_){}}
   ov.style.display='flex'}
 // host: show who is ready on the operator screen, and soft-gate DEPLOY
 (function(){const d=document.createElement('div');d.id='npReady';d.style.cssText='position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:40;padding:5px 14px;background:rgba(10,12,16,.85);border:1px solid #e5303a;color:#e8e8ee;font:11px Silkscreen,monospace;letter-spacing:2px;display:none';document.body.appendChild(d);
@@ -260,7 +267,7 @@ function onMsg(from,m){if(!m||typeof m!=='object')return;
    return}
   if(ROLE()==='client'&&from==='host'){
    if(m.t==='init'){try{initGuest(m)}catch(e){NP.err=String(e&&e.stack||e);console.error('netplay init failed',NP.err)}}else if(m.t==='tiles'&&G&&G.guest){NP.stats.tilesIn++;for(let i=0;i<m.c.length;i+=3)if(map[m.c[i+1]]&&map[m.c[i+1]][m.c[i]]!==m.c[i+2])setTile(m.c[i],m.c[i+1],m.c[i+2])}
-   else if(m.t==='end')hostEnded('HOST ENDED THE MATCH');else if(m.t==='snap'){applySnap(m);if(m.sn&&m.sn.length)playSnd(m.sn);if(m.bm&&m.bm.length)playBooms(m.bm)}else if(m.t==='own')applyOwn(m);else if(m.t==='decals'&&G&&G.guest){for(const d of m.d)G.decals.push({x:d[0],y:d[1],c:d[2],s:d[3]})}else if(m.t==='world')applyWorld(m)}}
+   else if(m.t==='end')hostEnded('HOST ENDED THE MATCH');else if(m.t==='snap'){applySnap(m);if(m.sn&&m.sn.length)playSnd(m.sn);if(m.bm&&m.bm.length)playBooms(m.bm)}else if(m.t==='own')applyOwn(m);else if(m.t==='mstats'&&Array.isArray(m.rows)){NP.mstats={rows:m.rows.slice(0,12),you:String(m.you||'')};guestPay()}else if(m.t==='decals'&&G&&G.guest){for(const d of m.d)G.decals.push({x:d[0],y:d[1],c:d[2],s:d[3]})}else if(m.t==='world')applyWorld(m)}}
 NP.leave=function(){NP.on=false;if(bar)bar.style.display='none'};
 setInterval(()=>{const n=NET();if(n&&ROLE()==='client'&&NP.tokFor!==n){let t='';try{t=localStorage.getItem('r6s_tok')||'';if(!t){t=Math.random().toString(36).slice(2,12)+Date.now().toString(36);localStorage.setItem('r6s_tok',t)}}catch(e){t='t'+Math.random().toString(36).slice(2,12)}
   if(n.send('host',{t:'tok',tok:t}))NP.tokFor=n}

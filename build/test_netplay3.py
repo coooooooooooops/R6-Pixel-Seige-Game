@@ -2,7 +2,8 @@
 from playwright.sync_api import sync_playwright
 import json,sys,os
 SIDE=os.environ.get('SIDE','')
-U='file:///home/claude/ext/r6-pixel-siege-extension/game.html'
+import os
+U='file://'+os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','game.html'))
 res=[]
 def ok(n,c,extra=''): res.append(bool(c)); print(('PASS ' if c else 'FAIL ')+n+(' '+str(extra) if extra!='' else ''))
 with sync_playwright() as p:

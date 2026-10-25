@@ -904,9 +904,9 @@ function objectives(){const al=s=>G.ents.filter(e=>e.alive&&e.side===s);const A=
  else{const h=G.hostage;if(h.hp<=0){endRound(h.by==='A'?'D':'A','HOSTAGE KILLED BY '+(h.by==='A'?'ATTACKERS':'DEFENDERS'));return}
   if(h.carrier&&dst(h.x,h.y,EXT[0],EXT[1])<30){endRound('A','HOSTAGE EXTRACTED');return}
   if(!D.length){endRound('A','DEFENDERS ELIMINATED');return}if(!A.length){endRound('D','ATTACKERS ELIMINATED');return}}}
-let MS={};function msAcc(w){const ci={A:0,D:0};for(const e of G.ents){const i=ci[e.side]++,k=(e.side===G.side?'T':'E')+i,r=MS[k]||(MS[k]={you:!e.bot,team:e.side===G.side,op:e.op.n,sc:0,kl:0,dd:0});r.op=e.op.n;r.kl+=e.kl||0;r.dd+=Math.round(e.dd||0);r.sc+=(e.kl||0)*100+(e.dd||0)*.5+(e.alive?40:0)+(e.side===w?30:0)}}
+let MS={};function msAcc(w){const ci={A:0,D:0};for(const e of G.ents){const i=ci[e.side]++,k=(e.side===G.side?'T':'E')+i,r=MS[k]||(MS[k]={you:!e.bot&&!e.rp,team:e.side===G.side,op:e.op.n,sc:0,kl:0,dd:0});r.op=e.op.n;r.kl+=e.kl||0;r.dd+=Math.round(e.dd||0);r.sc+=(e.kl||0)*100+(e.dd||0)*.5+(e.alive?40:0)+(e.side===w?30:0)}}
 function endRound(w,why){if(G.phase==='end')return;msAcc(w);try{window.R6Acct&&R6Acct.round(G,w)}catch(e){}G.phase='end';G.endT=150;G.res={w,why};score[w==='A'?0:1]++;G.msg=why;sfx(w===G.side?800:200,.6,'square',.06)}
-function showOver(){G.shown=1;const won=G.res.w===G.side,mw=score[G.side==='A'?0:1]>=3,ml=score[G.side==='A'?1:0]>=3,ov=document.getElementById('over');
+function showOver(){G.shown=1;const won=G.res.w===G.side,mw=score[G.side==='A'?0:1]>=3,ml=score[G.side==='A'?1:0]>=3,ov=document.getElementById('over');if((mw||ml)&&window.NP)NP.matchEnd();
  try{if(window.ECO){if((mw||ml)&&!G.paid){G.paid=1;try{window.R6Acct&&R6Acct.match(mw)}catch(_){}ECO.matchEnd({won:mw,rows:Object.values(MS),my:score[G.side==='A'?0:1],their:score[G.side==='A'?1:0]})}else if(!(mw||ml))ECO.clearRewards()}}catch(_){}
  document.getElementById('ot').textContent=mw?'MATCH WON':ml?'MATCH LOST':(won?'ROUND WON':'ROUND LOST');
  document.getElementById('ot').style.color=won?'#6aff9a':'#ff5a4a';document.getElementById('os').textContent=G.res.why+'  |  ATK '+score[0]+' - '+score[1]+' DEF  |  BEST OF 5, FIRST TO 3';
@@ -1030,7 +1030,7 @@ function keyAct(k,e){
  if(G.me.op.id==='montagne')G.me.sel=1}
 addEventListener('keyup',e=>{keys[tk(e.key.toLowerCase())]=false});
 function mpos(e){const r=cv.getBoundingClientRect();mouse.x=(e.clientX-r.left)/r.width*VW;mouse.y=(e.clientY-r.top)/r.height*VH}
-cv.addEventListener('mousemove',mpos);cv.addEventListener('mousedown',e=>{mpos(e);if(e.button!==0)return;if(G&&G.guest){if(window.NP)NP.click(0);return}if(G)mouseLB()});
+cv.addEventListener('mousemove',mpos);cv.addEventListener('mousedown',e=>{mpos(e);if(e.button!==0)return;if(G&&G.guest){if(window.NP)NP.click(0);if(!((G.cv>=0||DRN())&&inExit()))mouse.down=true;return}if(G)mouseLB()});
 addEventListener('mouseup',()=>mouse.down=false);cv.addEventListener('contextmenu',e=>{e.preventDefault();if(G&&G.guest){mpos(e);if(window.NP)NP.click(2)}});
 // ---------- menu ----------
 const $=id=>document.getElementById(id);

@@ -1,6 +1,6 @@
 from playwright.sync_api import sync_playwright
 import json
-U='file:///home/claude/r6/r6-pixel-siege-extension/game.html'
+import os; U='file://'+os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','game.html'))
 NET=json.dumps({'broker':'ws://127.0.0.1:8099'})
 res=[]
 def ok(n,c): res.append((n,bool(c))); print(('PASS ' if c else 'FAIL ')+n)

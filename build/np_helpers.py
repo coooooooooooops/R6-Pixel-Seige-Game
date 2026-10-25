@@ -1,6 +1,7 @@
 # shared helpers for two-browser online tests
 import os
-U='file:///home/claude/ext/r6-pixel-siege-extension/game.html'
+import os
+U='file://'+os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','game.html'))
 res=[]
 def ok(n,c,extra=''):
     res.append(bool(c)); print(('PASS ' if c else 'FAIL ')+n+(' '+str(extra) if extra!='' else ''))
